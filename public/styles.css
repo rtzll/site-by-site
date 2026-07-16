@@ -193,16 +193,16 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 .comparison-dock { position: fixed; z-index: 10; bottom: 1rem; left: 50%; display: grid; overflow: hidden; border: 1px solid rgb(255 255 255 / 16%); border-radius: .55rem; background: rgb(10 10 10 / 62%); color: white; backdrop-filter: blur(16px); transform: translateX(-50%); }
 .comparison-hint { margin: 0; padding: .36rem .7rem; border-bottom: 1px solid rgb(255 255 255 / 12%); color: rgb(255 255 255 / 68%); font-size: .7rem; text-align: center; white-space: nowrap; }
 .comparison-choices { display: flex; align-items: center; }
-.comparison-choices button { min-height: 2.15rem; border: 0; border-left: 1px solid rgb(255 255 255 / 14%); padding: .45rem .7rem; background: transparent; color: inherit; cursor: pointer; font-size: .75rem; }
+.comparison-choices button { min-height: 2.15rem; border: 0; border-left: 1px solid rgb(255 255 255 / 14%); padding: .45rem .7rem; background: transparent; color: inherit; cursor: pointer; font-size: .75rem; line-height: 1rem; }
 .comparison-choices button:first-child { border-left: 0; }
 .comparison-choices button:hover, .site-status button:hover { background: rgb(255 255 255 / 11%); }
 .comparison-choices button:focus-visible, .site-status button:focus-visible, .site-status a:focus-visible { outline: 2px solid white; outline-offset: -2px; }
 .comparison-choices button:disabled { opacity: .45; }
-.site-status { position: fixed; z-index: 10; bottom: 1rem; display: flex; min-width: 0; max-width: min(18rem, calc(50vw - 9rem)); align-items: stretch; overflow: hidden; border: 1px solid rgb(255 255 255 / 16%); border-radius: .45rem; background: rgb(10 10 10 / 54%); color: white; backdrop-filter: blur(16px); }
+.site-status { position: fixed; z-index: 10; bottom: 1rem; display: flex; min-width: 0; max-width: min(18rem, calc(50vw - 9rem)); align-items: baseline; overflow: hidden; border: 1px solid rgb(255 255 255 / 16%); border-radius: .45rem; background: rgb(10 10 10 / 54%); color: white; backdrop-filter: blur(16px); }
 .site-status-left { left: 1rem; }
 .site-status-right { right: 1rem; }
-.site-status a { min-width: 0; overflow: hidden; padding: .48rem .6rem; color: inherit; font-size: .75rem; text-decoration: none; text-overflow: ellipsis; text-shadow: 0 1px 8px rgb(0 0 0 / 70%); white-space: nowrap; }
-.site-status button { min-height: 2.15rem; flex-shrink: 0; border: 0; border-left: 1px solid rgb(255 255 255 / 14%); padding: .4rem .55rem; background: transparent; color: rgb(255 255 255 / 68%); cursor: pointer; font-size: .7rem; }
+.site-status a { display: inline-flex; min-width: 0; min-height: 2.15rem; align-items: center; overflow: hidden; padding: .45rem .6rem; color: inherit; font-size: .75rem; line-height: 1rem; text-decoration: none; text-overflow: ellipsis; text-shadow: 0 1px 8px rgb(0 0 0 / 70%); white-space: nowrap; }
+.site-status button { display: inline-flex; min-height: 2.15rem; flex-shrink: 0; align-items: center; border: 0; border-left: 1px solid rgb(255 255 255 / 14%); padding: .45rem .55rem; background: transparent; color: rgb(255 255 255 / 68%); cursor: pointer; font-size: .75rem; line-height: 1rem; }
 .preload-pool { position: fixed; width: 1px; height: 1px; left: -9999px; overflow: hidden; }
 .preload-pool iframe { width: 1px; height: 1px; border: 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
