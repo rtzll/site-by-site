@@ -14,6 +14,7 @@ import {
   type WebsiteRecord,
 } from '../data/local-library.ts'
 import { routes } from '../routes.ts'
+import { orientPair, translateVisibleChoice } from '../services/pair-orientation.ts'
 import { AppHeader } from '../ui/app-header.tsx'
 import { parseBookmarkHtml, type BookmarkFolder } from '../utils/bookmarks.ts'
 import { extractUrls } from '../utils/urls.ts'
@@ -44,9 +45,10 @@ export const SiteBySiteApp = clientEntry(
     let draggingDivider = false
     let pairLoading = false
     let loadedSides = new Set<'left' | 'right'>()
-    let showFailureControls = false
     let keyboardPaused = false
-    let showInstruction = true
+    let sidesSwapped = false
+    let swapAcknowledgement = false
+    let swapAcknowledgementVersion = 0
     let feedbackChoice: VoteChoice | null = null
     let initialized = false
 
@@ -100,6 +102,10 @@ export const SiteBySiteApp = clientEntry(
           event.preventDefault()
           void submitChoice('skip')
         }
+        if (event.key === 'ArrowUp') {
+          event.preventDefault()
+          swapSides()
+        }
         if (event.key === '1') {
           event.preventDefault()
           savedDividerPercent = dividerPercent
@@ -118,7 +124,6 @@ export const SiteBySiteApp = clientEntry(
         window.setTimeout(() => {
           if (document.activeElement instanceof HTMLIFrameElement) {
             keyboardPaused = true
-            showInstruction = true
             void handle.update()
           }
         })
@@ -241,7 +246,11 @@ export const SiteBySiteApp = clientEntry(
       keyboardPaused = false
       await handle.update()
       try {
-        await library.recordChoice({ collectionId: collection.id, pairId: pair.id, choice })
+        await library.recordChoice({
+          collectionId: collection.id,
+          pairId: pair.id,
+          choice: translateVisibleChoice(choice, sidesSwapped),
+        })
         await delay(120)
         pair = await library.getNextPair(collection.id)
         collection = await library.getCollection(collection.id)
@@ -261,7 +270,6 @@ export const SiteBySiteApp = clientEntry(
       if (!library || !collection || !pair || working) return
       working = true
       pairLoading = true
-      showFailureControls = false
       await handle.update()
       try {
         pair = await library.markSiteUnavailable({
@@ -284,9 +292,10 @@ export const SiteBySiteApp = clientEntry(
       dividerPercent = 50
       pairLoading = Boolean(pair)
       loadedSides = new Set()
-      showFailureControls = false
       keyboardPaused = false
-      showInstruction = true
+      sidesSwapped = false
+      swapAcknowledgement = false
+      swapAcknowledgementVersion += 1
       if (!pair) return
       let pairId = pair.id
       window.setTimeout(() => {
@@ -294,16 +303,6 @@ export const SiteBySiteApp = clientEntry(
         pairLoading = false
         void handle.update()
       }, 2_500)
-      window.setTimeout(() => {
-        if (pair?.id !== pairId) return
-        showFailureControls = true
-        void handle.update()
-      }, 5_000)
-      window.setTimeout(() => {
-        if (pair?.id !== pairId || keyboardPaused) return
-        showInstruction = false
-        void handle.update()
-      }, 3_600)
     }
 
     function frameLoaded(side: 'left' | 'right') {
@@ -325,6 +324,22 @@ export const SiteBySiteApp = clientEntry(
       setDivider((clientX / window.innerWidth) * 100)
     }
 
+    function swapSides() {
+      if (!pair || working) return
+      sidesSwapped = !sidesSwapped
+      swapAcknowledgement = true
+      let acknowledgementVersion = ++swapAcknowledgementVersion
+      keyboardPaused = false
+      setDivider(50)
+      let pairId = pair.id
+      void handle.update().then(focusDivider)
+      window.setTimeout(() => {
+        if (pair?.id !== pairId || swapAcknowledgementVersion !== acknowledgementVersion) return
+        swapAcknowledgement = false
+        void handle.update()
+      }, 1_000)
+    }
+
     function dividerPointerDown(event: Event) {
       let pointerEvent = event as PointerEvent
       let divider = event.currentTarget as HTMLButtonElement
@@ -332,7 +347,6 @@ export const SiteBySiteApp = clientEntry(
       divider.setPointerCapture(pointerEvent.pointerId)
       draggingDivider = true
       keyboardPaused = false
-      showInstruction = false
       moveDivider(pointerEvent.clientX)
     }
 
@@ -635,25 +649,27 @@ export const SiteBySiteApp = clientEntry(
         )
       }
 
+      let visiblePair = orientPair(pair, sidesSwapped)
+
       return (
         <main
           class={`comparison-stage isolate${pairLoading ? ' is-loading' : ''}`}
           style={{ '--divider': `${dividerPercent}%` }}
           data-comparison
         >
-          <div class="site-layer site-layer-left">
+          <div class={`site-layer ${sidesSwapped ? 'site-layer-right' : 'site-layer-left'}`}>
             <iframe
               key={`left-${pair.id}`}
-              title={`Left: ${pair.left.domain}`}
+              title={`${sidesSwapped ? 'Right' : 'Left'}: ${pair.left.domain}`}
               src={pair.left.url}
               referrerPolicy="no-referrer"
               mix={on<HTMLIFrameElement>('load', () => frameLoaded('left'))}
             ></iframe>
           </div>
-          <div class="site-layer site-layer-right">
+          <div class={`site-layer ${sidesSwapped ? 'site-layer-left' : 'site-layer-right'}`}>
             <iframe
               key={`right-${pair.id}`}
-              title={`Right: ${pair.right.domain}`}
+              title={`${sidesSwapped ? 'Left' : 'Right'}: ${pair.right.domain}`}
               src={pair.right.url}
               referrerPolicy="no-referrer"
               mix={on<HTMLIFrameElement>('load', () => frameLoaded('right'))}
@@ -678,40 +694,41 @@ export const SiteBySiteApp = clientEntry(
             <span class="divider-line"></span><span class="divider-handle"></span>
           </button>
           <div class="comparison-dock">
-            {showInstruction || keyboardPaused ? (
-              <p class="comparison-hint" role="status">
-                {keyboardPaused ? 'Click the divider to use keys' : 'Drag · ← / → choose · ↓ skip'}
-              </p>
-            ) : null}
+            <p class="comparison-hint" role="status">
+              {keyboardPaused
+                ? 'Click the divider to use keys'
+                : swapAcknowledgement
+                  ? 'Sides switched'
+                  : 'Drag divider · ← / → choose · ↓ skip · ↑ swap'}
+            </p>
             <div class="comparison-choices" aria-label="Choose a website">
               <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', () => void submitChoice('left'))}>← Left</button>
-              <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', () => void submitChoice('skip'))}>Skip</button>
+              <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', swapSides)}>↑ Swap</button>
+              <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', () => void submitChoice('skip'))}>↓ Skip</button>
               <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', () => void submitChoice('right'))}>Right →</button>
             </div>
           </div>
           <div class="site-status site-status-left">
-            <a href={pair.left.url} target="_blank" rel="noreferrer">{pair.left.domain}</a>
-            {showFailureControls ? (
-              <button
-                type="button"
-                aria-label={`Mark ${pair.left.domain} as unavailable`}
-                mix={on<HTMLButtonElement>('click', () => void markUnavailable(pair!.left.id))}
-              >
-                Didn’t load?
-              </button>
-            ) : null}
+            <a href={visiblePair.left.url} target="_blank" rel="noreferrer">{visiblePair.left.domain}</a>
+            <button
+              type="button"
+              disabled={working}
+              aria-label={`Mark ${visiblePair.left.domain} as unavailable`}
+              mix={on<HTMLButtonElement>('click', () => void markUnavailable(visiblePair.left.id))}
+            >
+              Didn’t load?
+            </button>
           </div>
           <div class="site-status site-status-right">
-            <a href={pair.right.url} target="_blank" rel="noreferrer">{pair.right.domain}</a>
-            {showFailureControls ? (
-              <button
-                type="button"
-                aria-label={`Mark ${pair.right.domain} as unavailable`}
-                mix={on<HTMLButtonElement>('click', () => void markUnavailable(pair!.right.id))}
-              >
-                Didn’t load?
-              </button>
-            ) : null}
+            <a href={visiblePair.right.url} target="_blank" rel="noreferrer">{visiblePair.right.domain}</a>
+            <button
+              type="button"
+              disabled={working}
+              aria-label={`Mark ${visiblePair.right.domain} as unavailable`}
+              mix={on<HTMLButtonElement>('click', () => void markUnavailable(visiblePair.right.id))}
+            >
+              Didn’t load?
+            </button>
           </div>
           <div class={`vote-feedback${feedbackChoice ? ` is-visible feedback-${feedbackChoice}` : ''}`}></div>
         </main>

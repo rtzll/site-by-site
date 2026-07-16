@@ -198,6 +198,7 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 .comparison-choices button:hover, .site-status button:hover { background: rgb(255 255 255 / 11%); }
 .comparison-choices button:focus-visible, .site-status button:focus-visible, .site-status a:focus-visible { outline: 2px solid white; outline-offset: -2px; }
 .comparison-choices button:disabled { opacity: .45; }
+.site-status button:disabled { cursor: default; opacity: .45; }
 .site-status { position: fixed; z-index: 10; bottom: 1rem; display: flex; min-width: 0; max-width: min(18rem, calc(50vw - 9rem)); align-items: baseline; overflow: hidden; border: 1px solid rgb(255 255 255 / 16%); border-radius: .45rem; background: rgb(10 10 10 / 54%); color: white; backdrop-filter: blur(16px); }
 .site-status-left { left: 1rem; }
 .site-status-right { right: 1rem; }

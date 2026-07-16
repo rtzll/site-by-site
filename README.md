@@ -56,11 +56,12 @@ Browser storage remains scoped to one origin and browser profile. Clearing site 
 - `←` chooses the left website
 - `→` chooses the right website
 - `↓` skips the pair
+- `↑` swaps the visible sides without reloading either website
 - Hold `1` to reveal the left website
 - Hold `2` to reveal the right website
 - Double-click the divider to reset it
 
-Cross-origin iframes take keyboard focus when a user interacts with them, so the parent page cannot continue receiving arrow keys. A compact bottom dock briefly explains the controls, shows how to resume keyboard input when necessary, and keeps visible left, skip, and right buttons as a reliable fallback. Clicking or dragging the divider returns focus to the parent page.
+Cross-origin iframes take keyboard focus when a user interacts with them, so the parent page cannot continue receiving arrow keys. A compact bottom dock keeps the controls visible, shows how to resume keyboard input when necessary, and provides left, swap, skip, and right buttons as a reliable fallback. Clicking or dragging the divider returns focus to the parent page. Swapping is visual only: choices are translated back to the underlying pair before they are stored, so rankings and history remain correct.
 
 ## Architecture
 
@@ -89,6 +90,6 @@ Pair selection prioritizes under-exposed websites, avoids recent pairs when alte
 
 ## Embedding limitations
 
-Browsers intentionally do not provide reliable failure events for cross-origin iframes: an iframe `load` event may fire even when a page was blocked, and an `error` event is generally withheld. Site by Site therefore does not guess based on a timeout. After a short delay, each bottom domain capsule gains its own “Didn’t load?” action; choosing it replaces that site and remembers the choice locally.
+Browsers intentionally do not provide reliable failure events for cross-origin iframes: an iframe `load` event may fire even when a page was blocked, and an `error` event is generally withheld. Site by Site therefore does not guess based on a timeout. Each bottom domain capsule always includes its own “Didn’t load?” action; choosing it replaces that site and remembers the choice locally.
 
 Some websites prevent framing with CSP or `X-Frame-Options`; others may be slow, geographically variable, or require interaction. Snapshot support remains a possible future fallback.
