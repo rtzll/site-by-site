@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "npm run typecheck && npm test",
+    "build": "vite build",
+    "check": "tsc --noEmit && NODE_ENV=test remix test && vite build",
     "dev": "NODE_ENV=development node --import remix/node-tsx server.ts",
     "start": "NODE_ENV=production node --import remix/node-tsx server.ts",
     "test": "NODE_ENV=test remix test",
@@ -12,12 +13,16 @@
   "engines": {
     "node": ">=24.3.0"
   },
+  "packageManager": "pnpm@10.33.2",
   "dependencies": {
+    "idb": "^8.0.3",
     "remix": "3.0.0-beta.5"
   },
   "devDependencies": {
-    "@types/node": "latest",
+    "@types/node": "^24.13.3",
+    "fake-indexeddb": "^6.2.5",
     "playwright": "1.60.0",
-    "typescript": "latest"
+    "typescript": "^6.0.3",
+    "vite": "^7.3.6"
   }
 }
