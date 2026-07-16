@@ -102,7 +102,7 @@ export const SiteBySiteApp = clientEntry(
           event.preventDefault()
           void submitChoice('skip')
         }
-        if (event.key === 'ArrowUp') {
+        if (event.key.toLowerCase() === 's') {
           event.preventDefault()
           swapSides()
         }
@@ -699,11 +699,11 @@ export const SiteBySiteApp = clientEntry(
                 ? 'Click the divider to use keys'
                 : swapAcknowledgement
                   ? 'Sides switched'
-                  : 'Drag divider · ← / → choose · ↓ skip · ↑ swap'}
+                  : 'Drag the divider to inspect both sites'}
             </p>
             <div class="comparison-choices" aria-label="Choose a website">
               <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', () => void submitChoice('left'))}>← Left</button>
-              <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', swapSides)}>↑ Swap</button>
+              <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', swapSides)}>S Swap</button>
               <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', () => void submitChoice('skip'))}>↓ Skip</button>
               <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', () => void submitChoice('right'))}>Right →</button>
             </div>
