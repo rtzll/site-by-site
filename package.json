@@ -1,0 +1,23 @@
+{
+  "name": "site-by-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "npm run typecheck && npm test",
+    "dev": "NODE_ENV=development node --import remix/node-tsx server.ts",
+    "start": "NODE_ENV=production node --import remix/node-tsx server.ts",
+    "test": "NODE_ENV=test remix test",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=24.3.0"
+  },
+  "dependencies": {
+    "remix": "3.0.0-beta.5"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "playwright": "1.60.0",
+    "typescript": "latest"
+  }
+}
