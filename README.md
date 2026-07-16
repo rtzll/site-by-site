@@ -56,7 +56,9 @@ Browser storage remains scoped to one origin and browser profile. Clearing site 
 - `←` chooses the left website
 - `→` chooses the right website
 - `↓` skips the pair
-- `S` swaps the visible sides without reloading either website
+- `s` swaps the visible sides without reloading either website
+- `z` marks the visible left website unavailable
+- `x` marks the visible right website unavailable
 - Hold `1` to reveal the left website
 - Hold `2` to reveal the right website
 - Double-click the divider to reset it

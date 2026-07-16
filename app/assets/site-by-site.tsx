@@ -106,6 +106,14 @@ export const SiteBySiteApp = clientEntry(
           event.preventDefault()
           swapSides()
         }
+        if (event.key.toLowerCase() === 'z') {
+          event.preventDefault()
+          markVisibleSideUnavailable('left')
+        }
+        if (event.key.toLowerCase() === 'x') {
+          event.preventDefault()
+          markVisibleSideUnavailable('right')
+        }
         if (event.key === '1') {
           event.preventDefault()
           savedDividerPercent = dividerPercent
@@ -286,6 +294,11 @@ export const SiteBySiteApp = clientEntry(
         await handle.update()
         if (pair) focusDivider()
       }
+    }
+
+    function markVisibleSideUnavailable(side: 'left' | 'right') {
+      if (!pair) return
+      void markUnavailable(orientPair(pair, sidesSwapped)[side].id)
     }
 
     function preparePair() {
@@ -702,10 +715,10 @@ export const SiteBySiteApp = clientEntry(
                   : 'Drag the divider to inspect both sites'}
             </p>
             <div class="comparison-choices" aria-label="Choose a website">
-              <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', () => void submitChoice('left'))}>← Left</button>
-              <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', swapSides)}>S Swap</button>
-              <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', () => void submitChoice('skip'))}>↓ Skip</button>
-              <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', () => void submitChoice('right'))}>Right →</button>
+              <button type="button" disabled={working} aria-keyshortcuts="ArrowLeft" mix={on<HTMLButtonElement>('click', () => void submitChoice('left'))}>[←] Left</button>
+              <button type="button" disabled={working} aria-keyshortcuts="s" mix={on<HTMLButtonElement>('click', swapSides)}>[s] Swap</button>
+              <button type="button" disabled={working} aria-keyshortcuts="ArrowDown" mix={on<HTMLButtonElement>('click', () => void submitChoice('skip'))}>[↓] Skip</button>
+              <button type="button" disabled={working} aria-keyshortcuts="ArrowRight" mix={on<HTMLButtonElement>('click', () => void submitChoice('right'))}>[→] Right</button>
             </div>
           </div>
           <div class="site-status site-status-left">
@@ -714,9 +727,10 @@ export const SiteBySiteApp = clientEntry(
               type="button"
               disabled={working}
               aria-label={`Mark ${visiblePair.left.domain} as unavailable`}
-              mix={on<HTMLButtonElement>('click', () => void markUnavailable(visiblePair.left.id))}
+              aria-keyshortcuts="z"
+              mix={on<HTMLButtonElement>('click', () => markVisibleSideUnavailable('left'))}
             >
-              Didn’t load?
+              [z] Didn’t load?
             </button>
           </div>
           <div class="site-status site-status-right">
@@ -725,9 +739,10 @@ export const SiteBySiteApp = clientEntry(
               type="button"
               disabled={working}
               aria-label={`Mark ${visiblePair.right.domain} as unavailable`}
-              mix={on<HTMLButtonElement>('click', () => void markUnavailable(visiblePair.right.id))}
+              aria-keyshortcuts="x"
+              mix={on<HTMLButtonElement>('click', () => markVisibleSideUnavailable('right'))}
             >
-              Didn’t load?
+              [x] Didn’t load?
             </button>
           </div>
           <div class={`vote-feedback${feedbackChoice ? ` is-visible feedback-${feedbackChoice}` : ''}`}></div>
