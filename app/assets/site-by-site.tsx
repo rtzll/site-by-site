@@ -165,8 +165,8 @@ export const SiteBySiteApp = clientEntry(
     }
 
     async function readBookmarkFile(file: File) {
-      if (file.size > 2_000_000) {
-        error = 'That bookmarks file is larger than 2 MB.'
+      if (file.size > 25_000_000) {
+        error = 'That bookmarks file is larger than 25 MB.'
         await handle.update()
         return
       }
@@ -436,7 +436,7 @@ export const SiteBySiteApp = clientEntry(
                     })}
                   />
                   <span class="drop-title">Choose or drop an HTML file</span>
-                  <span class="drop-note">Parsed locally · up to 2 MB</span>
+                  <span class="drop-note">Parsed locally · up to 25 MB</span>
                 </label>
                 {bookmarkFolders.length > 0 ? (
                   <div class="inline-folder-picker">
