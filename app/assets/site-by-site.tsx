@@ -46,6 +46,7 @@ export const SiteBySiteApp = clientEntry(
     let loadedSides = new Set<'left' | 'right'>()
     let showFailureControls = false
     let keyboardPaused = false
+    let showInstruction = true
     let feedbackChoice: VoteChoice | null = null
     let initialized = false
 
@@ -117,6 +118,7 @@ export const SiteBySiteApp = clientEntry(
         window.setTimeout(() => {
           if (document.activeElement instanceof HTMLIFrameElement) {
             keyboardPaused = true
+            showInstruction = true
             void handle.update()
           }
         })
@@ -284,6 +286,7 @@ export const SiteBySiteApp = clientEntry(
       loadedSides = new Set()
       showFailureControls = false
       keyboardPaused = false
+      showInstruction = true
       if (!pair) return
       let pairId = pair.id
       window.setTimeout(() => {
@@ -296,6 +299,11 @@ export const SiteBySiteApp = clientEntry(
         showFailureControls = true
         void handle.update()
       }, 5_000)
+      window.setTimeout(() => {
+        if (pair?.id !== pairId || keyboardPaused) return
+        showInstruction = false
+        void handle.update()
+      }, 3_600)
     }
 
     function frameLoaded(side: 'left' | 'right') {
@@ -324,6 +332,7 @@ export const SiteBySiteApp = clientEntry(
       divider.setPointerCapture(pointerEvent.pointerId)
       draggingDivider = true
       keyboardPaused = false
+      showInstruction = false
       moveDivider(pointerEvent.clientX)
     }
 
@@ -668,25 +677,42 @@ export const SiteBySiteApp = clientEntry(
           >
             <span class="divider-line"></span><span class="divider-handle"></span>
           </button>
-          <div class={`comparison-instruction${keyboardPaused ? '' : ' is-idle'}`}>
-            {keyboardPaused
-              ? 'Keyboard paused after using a site · click the divider to resume'
-              : 'Drag to inspect · ← or → to choose · ↓ to skip'}
-          </div>
-          <a class="domain-label domain-left" href={pair.left.url} target="_blank" rel="noreferrer">{pair.left.domain}</a>
-          <a class="domain-label domain-right" href={pair.right.url} target="_blank" rel="noreferrer">{pair.right.domain}</a>
-          <div class="comparison-choices" aria-label="Choose a website">
-            <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', () => void submitChoice('left'))}>← Left</button>
-            <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', () => void submitChoice('skip'))}>Skip</button>
-            <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', () => void submitChoice('right'))}>Right →</button>
-          </div>
-          {showFailureControls ? (
-            <div class="failure-controls">
-              <span>Site didn’t load?</span>
-              <button type="button" mix={on<HTMLButtonElement>('click', () => void markUnavailable(pair!.left.id))}>Left failed</button>
-              <button type="button" mix={on<HTMLButtonElement>('click', () => void markUnavailable(pair!.right.id))}>Right failed</button>
+          <div class="comparison-dock">
+            {showInstruction || keyboardPaused ? (
+              <p class="comparison-hint" role="status">
+                {keyboardPaused ? 'Click the divider to use keys' : 'Drag · ← / → choose · ↓ skip'}
+              </p>
+            ) : null}
+            <div class="comparison-choices" aria-label="Choose a website">
+              <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', () => void submitChoice('left'))}>← Left</button>
+              <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', () => void submitChoice('skip'))}>Skip</button>
+              <button type="button" disabled={working} mix={on<HTMLButtonElement>('click', () => void submitChoice('right'))}>Right →</button>
             </div>
-          ) : null}
+          </div>
+          <div class="site-status site-status-left">
+            <a href={pair.left.url} target="_blank" rel="noreferrer">{pair.left.domain}</a>
+            {showFailureControls ? (
+              <button
+                type="button"
+                aria-label={`Mark ${pair.left.domain} as unavailable`}
+                mix={on<HTMLButtonElement>('click', () => void markUnavailable(pair!.left.id))}
+              >
+                Didn’t load?
+              </button>
+            ) : null}
+          </div>
+          <div class="site-status site-status-right">
+            <a href={pair.right.url} target="_blank" rel="noreferrer">{pair.right.domain}</a>
+            {showFailureControls ? (
+              <button
+                type="button"
+                aria-label={`Mark ${pair.right.domain} as unavailable`}
+                mix={on<HTMLButtonElement>('click', () => void markUnavailable(pair!.right.id))}
+              >
+                Didn’t load?
+              </button>
+            ) : null}
+          </div>
           <div class={`vote-feedback${feedbackChoice ? ` is-visible feedback-${feedbackChoice}` : ''}`}></div>
         </main>
       )

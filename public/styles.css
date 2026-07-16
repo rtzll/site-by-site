@@ -181,12 +181,6 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 .divider-handle { position: absolute; top: 50%; left: 50%; width: .38rem; height: 2.6rem; border: 1px solid rgb(255 255 255 / 55%); border-radius: 999px; background: rgb(20 20 20 / 45%); backdrop-filter: blur(12px); transform: translate(-50%, -50%); opacity: .65; }
 .divider:hover .divider-handle, .divider:focus-visible .divider-handle { opacity: 1; transform: translate(-50%, -50%) scaleX(1.2); }
 .divider:focus-visible { outline: none; }
-.domain-label, .comparison-instruction { position: fixed; z-index: 6; color: white; font-size: .75rem; text-decoration: none; text-shadow: 0 1px 8px rgb(0 0 0 / 70%); }
-.domain-label { bottom: 1rem; padding: .45rem .6rem; border-radius: .35rem; background: rgb(0 0 0 / 28%); backdrop-filter: blur(14px); }
-.domain-left { left: 1rem; }
-.domain-right { right: 1rem; }
-.comparison-instruction { top: 1rem; left: 50%; padding: .5rem .7rem; border-radius: .4rem; background: rgb(0 0 0 / 36%); backdrop-filter: blur(14px); transform: translateX(-50%); white-space: nowrap; opacity: 1; transition: opacity 500ms ease; }
-.comparison-instruction.is-idle { opacity: .72; }
 .comparison-loading { position: absolute; z-index: 8; inset: 0; display: grid; place-content: center; justify-items: center; gap: .9rem; background: #171714; color: white; opacity: 0; pointer-events: none; }
 .comparison-loading span { width: 1.5rem; height: 1.5rem; border: 1px solid rgb(255 255 255 / 18%); border-top-color: white; border-radius: 50%; animation: spin 800ms linear infinite; }
 .comparison-loading p { font-size: .75rem; color: rgb(255 255 255 / 64%); }
@@ -196,15 +190,19 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 .feedback-left { background: linear-gradient(90deg, rgb(255 255 255 / 16%), transparent 35%); }
 .feedback-right { background: linear-gradient(270deg, rgb(255 255 255 / 16%), transparent 35%); }
 .feedback-skip { background: rgb(0 0 0 / 14%); }
-.comparison-choices, .failure-controls { position: fixed; z-index: 10; left: 50%; display: flex; align-items: center; border: 1px solid rgb(255 255 255 / 16%); border-radius: .55rem; background: rgb(10 10 10 / 58%); color: white; backdrop-filter: blur(16px); transform: translateX(-50%); }
-.comparison-choices { bottom: 1rem; overflow: hidden; }
-.comparison-choices button, .failure-controls button { min-height: 2.15rem; border: 0; border-left: 1px solid rgb(255 255 255 / 14%); padding: .45rem .7rem; background: transparent; color: inherit; cursor: pointer; font-size: .75rem; }
+.comparison-dock { position: fixed; z-index: 10; bottom: 1rem; left: 50%; display: grid; overflow: hidden; border: 1px solid rgb(255 255 255 / 16%); border-radius: .55rem; background: rgb(10 10 10 / 62%); color: white; backdrop-filter: blur(16px); transform: translateX(-50%); }
+.comparison-hint { margin: 0; padding: .36rem .7rem; border-bottom: 1px solid rgb(255 255 255 / 12%); color: rgb(255 255 255 / 68%); font-size: .7rem; text-align: center; white-space: nowrap; }
+.comparison-choices { display: flex; align-items: center; }
+.comparison-choices button { min-height: 2.15rem; border: 0; border-left: 1px solid rgb(255 255 255 / 14%); padding: .45rem .7rem; background: transparent; color: inherit; cursor: pointer; font-size: .75rem; }
 .comparison-choices button:first-child { border-left: 0; }
-.comparison-choices button:hover, .failure-controls button:hover { background: rgb(255 255 255 / 11%); }
-.comparison-choices button:focus-visible, .failure-controls button:focus-visible { outline: 2px solid white; outline-offset: -2px; }
+.comparison-choices button:hover, .site-status button:hover { background: rgb(255 255 255 / 11%); }
+.comparison-choices button:focus-visible, .site-status button:focus-visible, .site-status a:focus-visible { outline: 2px solid white; outline-offset: -2px; }
 .comparison-choices button:disabled { opacity: .45; }
-.failure-controls { top: 3.7rem; }
-.failure-controls span { padding: .45rem .7rem; color: rgb(255 255 255 / 68%); font-size: .72rem; }
+.site-status { position: fixed; z-index: 10; bottom: 1rem; display: flex; min-width: 0; max-width: min(18rem, calc(50vw - 9rem)); align-items: stretch; overflow: hidden; border: 1px solid rgb(255 255 255 / 16%); border-radius: .45rem; background: rgb(10 10 10 / 54%); color: white; backdrop-filter: blur(16px); }
+.site-status-left { left: 1rem; }
+.site-status-right { right: 1rem; }
+.site-status a { min-width: 0; overflow: hidden; padding: .48rem .6rem; color: inherit; font-size: .75rem; text-decoration: none; text-overflow: ellipsis; text-shadow: 0 1px 8px rgb(0 0 0 / 70%); white-space: nowrap; }
+.site-status button { min-height: 2.15rem; flex-shrink: 0; border: 0; border-left: 1px solid rgb(255 255 255 / 14%); padding: .4rem .55rem; background: transparent; color: rgb(255 255 255 / 68%); cursor: pointer; font-size: .7rem; }
 .preload-pool { position: fixed; width: 1px; height: 1px; left: -9999px; overflow: hidden; }
 .preload-pool iframe { width: 1px; height: 1px; border: 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -222,14 +220,17 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
   .stats-row div:nth-child(even) { padding-left: 1rem; border-left: 1px solid var(--line); }
   .ranking-actions { justify-content: flex-start; }
   .table-scroll { margin-inline: -.75rem; padding-inline: .75rem; }
-  .comparison-instruction { top: .75rem; max-width: calc(100vw - 1.5rem); overflow: hidden; text-overflow: ellipsis; }
-  .domain-label { bottom: .75rem; }
-  .domain-left { left: .75rem; }
-  .domain-right { right: .75rem; }
-  .comparison-choices { bottom: .75rem; }
-  .failure-controls { top: 3.45rem; max-width: calc(100vw - 1.5rem); white-space: nowrap; }
+  .comparison-dock { bottom: .75rem; }
+  .site-status { bottom: 5.25rem; max-width: calc(50vw - 1rem); }
+  .site-status-left { left: .75rem; }
+  .site-status-right { right: .75rem; }
   .saved-heading-row, .saved-list a { align-items: flex-start; flex-direction: column; }
   .saved-list a { justify-content: center; gap: .3rem; }
+}
+
+@media (pointer: coarse) {
+  .comparison-choices button, .site-status a, .site-status button { min-height: 3rem; }
+  .site-status { bottom: 6.15rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -60,7 +60,7 @@ Browser storage remains scoped to one origin and browser profile. Clearing site 
 - Hold `2` to reveal the right website
 - Double-click the divider to reset it
 
-Cross-origin iframes take keyboard focus when a user interacts with them, so the parent page cannot continue receiving arrow keys. Site by Site detects that focus change, explains how to resume keyboard controls, and keeps visible left, skip, and right buttons as a reliable fallback. Clicking or dragging the divider returns focus to the parent page.
+Cross-origin iframes take keyboard focus when a user interacts with them, so the parent page cannot continue receiving arrow keys. A compact bottom dock briefly explains the controls, shows how to resume keyboard input when necessary, and keeps visible left, skip, and right buttons as a reliable fallback. Clicking or dragging the divider returns focus to the parent page.
 
 ## Architecture
 
@@ -89,6 +89,6 @@ Pair selection prioritizes under-exposed websites, avoids recent pairs when alte
 
 ## Embedding limitations
 
-Browsers intentionally do not provide reliable failure events for cross-origin iframes: an iframe `load` event may fire even when a page was blocked, and an `error` event is generally withheld. Site by Site therefore does not guess based on a timeout. After a short delay it offers explicit “Left failed” and “Right failed” actions, then replaces the failed site and remembers the choice locally.
+Browsers intentionally do not provide reliable failure events for cross-origin iframes: an iframe `load` event may fire even when a page was blocked, and an `error` event is generally withheld. Site by Site therefore does not guess based on a timeout. After a short delay, each bottom domain capsule gains its own “Didn’t load?” action; choosing it replaces that site and remembers the choice locally.
 
 Some websites prevent framing with CSP or `X-Frame-Options`; others may be slow, geographically variable, or require interaction. Snapshot support remains a possible future fallback.
