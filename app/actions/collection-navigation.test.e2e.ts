@@ -24,6 +24,8 @@ describe('saved collection navigation', () => {
     assert.equal(await collectionLink.getAttribute('rmx-document'), '')
     await collectionLink.click()
     await page.getByRole('heading', { name: 'Untitled collection' }).waitFor()
+    assert.equal(await page.getByRole('link', { name: 'Collection' }).getAttribute('aria-current'), 'page')
+    assert.equal(await page.getByRole('link', { name: 'Ranking' }).getAttribute('aria-current'), null)
 
     let pageText = await page.locator('body').innerText()
     assert.match(pageText, /Untitled collection/)
@@ -57,6 +59,8 @@ describe('saved collection navigation', () => {
     assert.equal(await rankingLink.getAttribute('rmx-document'), '')
     await rankingLink.click()
     await page.locator('.ranking-table').waitFor()
+    assert.equal(await page.getByRole('link', { name: 'Collection' }).getAttribute('aria-current'), null)
+    assert.equal(await page.getByRole('link', { name: 'Ranking' }).getAttribute('aria-current'), 'page')
     let rankingWidth = await page.locator('.workspace-main').evaluate(
       (element) => element.getBoundingClientRect().width,
     )

@@ -84,6 +84,7 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 .workspace-shell .wordmark { color: white; font-weight: 500; letter-spacing: 0; }
 .workspace-shell .header-actions a { color: rgb(255 255 255 / 48%); font-size: var(--workspace-type); }
 .workspace-shell .header-actions a:hover { color: white; }
+.workspace-shell .header-actions a[aria-current="page"] { color: white; }
 .workspace-main { width: min(100% - 2rem, 38rem); margin-inline: auto; padding-block: clamp(2.5rem, 7vw, 5rem); }
 .workspace-heading { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 1rem; padding-bottom: 1rem; }
 .workspace-heading h1 { min-width: 0; overflow: hidden; color: white; font-size: 1rem; font-weight: 500; letter-spacing: 0; line-height: normal; text-overflow: ellipsis; white-space: nowrap; }

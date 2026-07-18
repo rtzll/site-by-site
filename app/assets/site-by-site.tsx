@@ -567,7 +567,7 @@ export const SiteBySiteApp = clientEntry(
     function renderCollection() {
       return (
         <div class="app-shell workspace-shell">
-          <AppHeader collectionId={collection?.id} />
+          <AppHeader collectionId={collection?.id} currentPage="collection" />
           <main class="workspace-main isolate">
             {loading ? <LoadingPage /> : !collection ? <MissingCollection /> : (
               <>
@@ -624,7 +624,7 @@ export const SiteBySiteApp = clientEntry(
     function renderRanking() {
       return (
         <div class="app-shell workspace-shell">
-          <AppHeader collectionId={collection?.id} />
+          <AppHeader collectionId={collection?.id} currentPage="ranking" />
           <main class="workspace-main isolate">
             {loading ? <LoadingPage /> : !collection ? <MissingCollection /> : (
               <>
