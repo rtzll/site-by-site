@@ -51,6 +51,8 @@ export const SiteBySiteApp = clientEntry(
     let error: string | null = null
     let bookmarkFolders: BookmarkFolder[] = []
     let selectedFolderPath: string | null = null
+    let homeDividerPercent = 50
+    let draggingHomeDivider = false
     let dividerPercent = 50
     let savedDividerPercent = 50
     let draggingDivider = false
@@ -156,6 +158,56 @@ export const SiteBySiteApp = clientEntry(
         window.removeEventListener('keyup', onKeyUp)
         window.removeEventListener('blur', onWindowBlur)
       })
+    }
+
+    function setHomeDivider(percent: number) {
+      homeDividerPercent = Math.min(100, Math.max(0, percent))
+      let preview = document.querySelector<HTMLElement>('[data-home-comparison]')
+      preview?.style.setProperty('--divider', `${homeDividerPercent}%`)
+      preview
+        ?.querySelector<HTMLElement>('[data-home-divider]')
+        ?.setAttribute('aria-valuenow', String(Math.round(homeDividerPercent)))
+    }
+
+    function moveHomeDivider(clientX: number) {
+      let preview = document.querySelector<HTMLElement>('[data-home-comparison]')
+      if (!preview) return
+      let bounds = preview.getBoundingClientRect()
+      setHomeDivider(((clientX - bounds.left) / bounds.width) * 100)
+    }
+
+    function homeDividerPointerDown(event: Event) {
+      let pointerEvent = event as PointerEvent
+      let divider = event.currentTarget as HTMLButtonElement
+      divider.focus({ preventScroll: true })
+      divider.setPointerCapture(pointerEvent.pointerId)
+      draggingHomeDivider = true
+      moveHomeDivider(pointerEvent.clientX)
+    }
+
+    function homeDividerPointerMove(event: Event) {
+      if (draggingHomeDivider) moveHomeDivider((event as PointerEvent).clientX)
+    }
+
+    function homeDividerPointerUp(event: Event) {
+      let pointerEvent = event as PointerEvent
+      draggingHomeDivider = false
+      let divider = event.currentTarget as HTMLButtonElement
+      if (divider.hasPointerCapture(pointerEvent.pointerId)) {
+        divider.releasePointerCapture(pointerEvent.pointerId)
+      }
+    }
+
+    function homeDividerKeyDown(event: Event) {
+      let keyboardEvent = event as KeyboardEvent
+      let nextPercent = homeDividerPercent
+      if (keyboardEvent.key === 'ArrowLeft') nextPercent -= 5
+      else if (keyboardEvent.key === 'ArrowRight') nextPercent += 5
+      else if (keyboardEvent.key === 'Home') nextPercent = 0
+      else if (keyboardEvent.key === 'End') nextPercent = 100
+      else return
+      keyboardEvent.preventDefault()
+      setHomeDivider(nextPercent)
     }
 
     async function importPastedUrls(event: Event) {
@@ -470,6 +522,43 @@ export const SiteBySiteApp = clientEntry(
           <main class="home-main isolate">
             <section class="home-entry" aria-labelledby="home-heading">
               <h1 class="sr-only" id="home-heading">Compare websites side by side</h1>
+              <div
+                class="home-preview"
+                style={{ '--divider': `${homeDividerPercent}%` }}
+                data-home-comparison
+              >
+                <div class="home-preview-side home-preview-left" aria-hidden="true">
+                  <span>studio</span>
+                  <strong>Objects for<br />quiet rooms.</strong>
+                  <i></i>
+                </div>
+                <div class="home-preview-side home-preview-right" aria-hidden="true">
+                  <span>field notes</span>
+                  <strong>Ideas for<br />loud places.</strong>
+                  <i></i>
+                </div>
+                <button
+                  class="home-preview-divider"
+                  type="button"
+                  role="slider"
+                  aria-label="Preview the site comparison divider"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(homeDividerPercent)}
+                  data-home-divider
+                  mix={[
+                    on<HTMLButtonElement>('pointerdown', homeDividerPointerDown),
+                    on<HTMLButtonElement>('pointermove', homeDividerPointerMove),
+                    on<HTMLButtonElement>('pointerup', homeDividerPointerUp),
+                    on<HTMLButtonElement>('pointercancel', homeDividerPointerUp),
+                    on<HTMLButtonElement>('keydown', homeDividerKeyDown),
+                    on<HTMLButtonElement>('dblclick', () => setHomeDivider(50)),
+                  ]}
+                >
+                  <span class="divider-line"></span><span class="divider-handle"></span>
+                </button>
+                <p class="home-preview-hint" aria-hidden="true">Drag to compare</p>
+              </div>
               <p class="home-summary">
                 Add bookmarks or paste links to compare websites side by side. Everything stays in this browser.
               </p>

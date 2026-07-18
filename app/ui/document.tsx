@@ -2,6 +2,10 @@ import { css, type Handle, type RemixNode } from 'remix/ui'
 
 import { clientEntryHref } from '../client-entry.ts'
 
+const stylesHref = process.env.NODE_ENV === 'development'
+  ? `/styles.css?v=${Date.now()}`
+  : '/styles.css'
+
 export interface DocumentProps {
   children?: RemixNode
   title?: string
@@ -25,7 +29,7 @@ export function Document(handle: Handle<DocumentProps>) {
             rel="stylesheet"
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
           />
-          <link rel="stylesheet" href="/styles.css" />
+          <link rel="stylesheet" href={stylesHref} />
           <title>{title}</title>
         </head>
         <body class={bodyClass} mix={bodyStyle}>

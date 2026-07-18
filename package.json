@@ -5,7 +5,7 @@
   "scripts": {
     "build": "vite build",
     "check": "tsc --noEmit && vite build && NODE_ENV=test remix test",
-    "dev": "NODE_ENV=development node --import remix/node-tsx server.ts",
+    "dev": "NODE_ENV=development node --watch-path=app --watch-path=public --watch-path=server.ts --watch-path=vite.config.ts --import remix/node-tsx server.ts",
     "start": "NODE_ENV=production node --import remix/node-tsx server.ts",
     "test": "vite build && NODE_ENV=test remix test",
     "typecheck": "tsc --noEmit"

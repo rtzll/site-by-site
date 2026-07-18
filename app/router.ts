@@ -17,8 +17,8 @@ declare module 'remix/router' {
 export function createAppRouter() {
   let router = createRouter<AppContext>({
     middleware: [
-      staticFiles('./dist/client', { index: false }),
       staticFiles('./public', { index: false }),
+      staticFiles('./dist/client', { index: false }),
       render(),
     ],
   })
