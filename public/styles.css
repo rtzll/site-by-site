@@ -33,9 +33,9 @@ a { color: inherit; }
   padding-block: 1.25rem;
   border-bottom: 1px solid var(--line);
 }
-.wordmark { font-size: .875rem; font-weight: 600; letter-spacing: -.02em; text-decoration: none; }
-.header-actions { display: flex; min-width: 0; gap: 1.25rem; overflow-x: auto; white-space: nowrap; }
-.header-actions a { color: var(--muted); font-size: .8125rem; text-decoration: none; }
+.wordmark { position: relative; font-size: .875rem; font-weight: 600; letter-spacing: -.02em; text-decoration: none; }
+.header-actions { display: flex; min-width: 0; flex-shrink: 0; gap: 1.25rem; white-space: nowrap; }
+.header-actions a { position: relative; color: var(--muted); font-size: .8125rem; text-decoration: none; }
 .header-actions a:hover { color: var(--ink); }
 
 .eyebrow { margin: 0; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; }
@@ -203,6 +203,7 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 }
 
 @media (pointer: coarse) {
+  .wordmark::after, .header-actions a::after { position: absolute; top: 50%; left: 50%; width: max(100%, 3rem); height: 3rem; content: ""; transform: translate(-50%, -50%); }
   .home-control, .home-folder-controls select, .home-library-heading button { min-height: 3rem; }
   .home-drop-zone { min-height: 5.5rem; }
   .workspace-controls a, .workspace-controls button, .workspace-control, .workspace-settings summary, .compact-form input { min-height: 3rem; }
