@@ -4,10 +4,10 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "check": "tsc --noEmit && NODE_ENV=test remix test && vite build",
+    "check": "tsc --noEmit && vite build && NODE_ENV=test remix test",
     "dev": "NODE_ENV=development node --import remix/node-tsx server.ts",
     "start": "NODE_ENV=production node --import remix/node-tsx server.ts",
-    "test": "NODE_ENV=test remix test",
+    "test": "vite build && NODE_ENV=test remix test",
     "typecheck": "tsc --noEmit"
   },
   "engines": {

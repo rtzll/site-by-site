@@ -507,7 +507,10 @@ export const SiteBySiteApp = clientEntry(
                 </div>
                 <div class="home-library-list">
                   {collections.map((saved) => (
-                    <a href={routes.collections.show.href({ collectionId: saved.id })}>
+                    <a
+                      href={routes.collections.show.href({ collectionId: saved.id })}
+                      rmx-document=""
+                    >
                       <span>{saved.name}</span>
                       <span class="home-library-meta">
                         {saved.websiteCount} sites · {saved.comparisonCount} comparisons
