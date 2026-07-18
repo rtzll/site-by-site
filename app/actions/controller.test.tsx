@@ -16,8 +16,8 @@ describe('local-first application routes', () => {
       html,
       /Add bookmarks or paste links to compare websites side by side\. Everything stays in this browser\./,
     )
-    assert.match(html, /Personal sites demo/)
-    assert.match(html, /34 sites/)
+    assert.match(html, />Demo</)
+    assert.match(html, /34 personal sites/)
     assert.doesNotMatch(html, /A quieter way to decide/)
   })
 

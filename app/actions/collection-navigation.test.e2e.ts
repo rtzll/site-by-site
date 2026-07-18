@@ -72,7 +72,7 @@ describe('saved collection navigation', () => {
     let page = await t.serve(server)
 
     await page.goto('/')
-    let startDemo = page.getByRole('button', { name: 'Start demo' })
+    let startDemo = page.getByRole('button', { name: 'Open demo' })
     await startDemo.click()
     await page.waitForURL(/\/collections\/[^/]+\/compare$/)
     await page.locator('[data-comparison]').waitFor()
@@ -87,7 +87,7 @@ describe('saved collection navigation', () => {
     assert.match(await demoLink.innerText(), /34 sites/)
     assert.equal(await demoLink.count(), 1)
 
-    await page.getByRole('button', { name: 'Start demo' }).click()
+    await page.getByRole('button', { name: 'Open demo' }).click()
     await page.waitForURL(/\/collections\/[^/]+\/compare$/)
     await page.goto('/')
     assert.equal(await page.getByRole('link', { name: /Personal sites demo/ }).count(), 1)

@@ -521,8 +521,8 @@ export const SiteBySiteApp = clientEntry(
 
                 <section class="home-import-method home-demo-method" aria-labelledby="demo-heading">
                   <div class="home-method-heading">
-                    <h2 id="demo-heading">{demoCollectionName}</h2>
-                    <span>{demoWebsiteUrls.length} sites</span>
+                    <h2 id="demo-heading">Demo</h2>
+                    <span>{demoWebsiteUrls.length} personal sites</span>
                   </div>
                   <button
                     class="home-control home-demo-control"
@@ -530,7 +530,7 @@ export const SiteBySiteApp = clientEntry(
                     disabled={working || !library}
                     mix={on<HTMLButtonElement>('click', () => void startDemo())}
                   >
-                    {working ? 'Opening…' : 'Start demo'}
+                    {working ? 'Opening…' : 'Open demo'}
                   </button>
                 </section>
               </div>

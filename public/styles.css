@@ -69,6 +69,7 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 .home-control:hover, .home-library button:hover, .home-library-list a:hover { background: rgb(255 255 255 / 11%); }
 .home-control:disabled { cursor: default; opacity: .45; }
 .home-submit, .home-demo-control { justify-self: end; }
+.home-demo-control { border-color: transparent; color: rgb(255 255 255 / 68%); }
 .home-error { padding: .65rem .75rem; border: 1px solid rgb(255 255 255 / 16%); border-radius: .45rem; background: rgb(255 255 255 / 6%); color: rgb(255 255 255 / 76%); font-size: var(--home-type); line-height: 1.5; }
 .home-library { margin-top: 1rem; }
 .home-library-heading { padding: .55rem .75rem; }
