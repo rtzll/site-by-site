@@ -4,7 +4,7 @@ import { updateElo } from '../services/elo.ts'
 import { pairKey, selectPair } from '../services/pair-selector.ts'
 import type { ImportedUrl } from '../utils/urls.ts'
 
-export type SourceType = 'bookmarks' | 'paste'
+export type SourceType = 'bookmarks' | 'paste' | 'demo'
 export type VoteChoice = 'left' | 'right' | 'skip'
 
 export interface CollectionSummary {

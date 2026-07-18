@@ -1,6 +1,6 @@
 # Site by Site
 
-Site by Site is a local-first web app for ranking website inspiration through one-versus-one comparisons. Drop a browser bookmarks export or paste a mixed list of URLs, then choose between two full-viewport websites until the collection settles into an order.
+Site by Site is a local-first web app for ranking website inspiration through one-versus-one comparisons. Start with the bundled 34-site demo, drop a browser bookmarks export, or paste a mixed list of URLs. Then choose between two full-viewport websites until the collection settles into an order.
 
 ## Run locally
 
@@ -43,13 +43,14 @@ Browser storage remains scoped to one origin and browser profile. Clearing site 
 
 ## Product flow
 
-1. Paste URLs or drop a standard browser-exported bookmarks HTML file.
-2. Bookmark folders are parsed and selected inline on the landing page.
-3. A collection is created immediately. Pasted collections receive `Untitled collection`, with a number added when necessary; bookmark imports use the folder name.
-4. The browser stores normalized, deduplicated websites locally and opens the first comparison.
-5. Votes update Elo and comparison statistics atomically in IndexedDB.
-6. Rankings and collection summaries are read from the same local library on later visits.
-7. If a site does not render, mark the left or right site unavailable. It is stored locally and excluded from future pairs.
+1. Start the bundled demo, paste URLs, or drop a standard browser-exported bookmarks HTML file.
+2. The demo copies 34 known-working personal sites into one local collection and reuses it on later visits.
+3. Bookmark folders are parsed and selected inline on the landing page.
+4. A collection is created immediately. Pasted collections receive `Untitled collection`, with a number added when necessary; bookmark imports use the folder name.
+5. The browser stores normalized, deduplicated websites locally and opens the first comparison.
+6. Votes update Elo and comparison statistics atomically in IndexedDB.
+7. Rankings and collection summaries are read from the same local library on later visits.
+8. If a site does not render, mark the left or right site unavailable. It is stored locally and excluded from future pairs.
 
 ## Comparison controls
 
@@ -72,6 +73,7 @@ server.ts                         Node Fetch server for the current runtime
 vite.config.ts                    Production browser bundle
 app/routes.ts                     Read-only typed page routes
 app/actions/                      Application shell controllers
+app/data/demo-websites.ts         Bundled ready-site URLs for the opt-in demo
 app/data/local-library.ts         Typed IndexedDB LocalLibrary module
 app/services/                     Pure pairing and Elo decisions
 app/utils/                        Bookmark and URL parsing

@@ -6,6 +6,7 @@ import {
   type SerializableProps,
 } from 'remix/ui'
 
+import { demoCollectionName, demoWebsiteUrls } from '../data/demo-websites.ts'
 import {
   openLocalLibrary,
   type CollectionSummary,
@@ -216,6 +217,28 @@ export const SiteBySiteApp = clientEntry(
       } catch (caught) {
         working = false
         error = messageFrom(caught, 'The bookmarks could not be saved.')
+        await handle.update()
+      }
+    }
+
+    async function startDemo() {
+      if (!library || working) return
+
+      working = true
+      error = null
+      await handle.update()
+      try {
+        let demo = (await library.listCollections()).find((saved) => saved.sourceType === 'demo')
+        demo ??= await library.createCollection({
+          name: demoCollectionName,
+          sourceType: 'demo',
+          websites: extractUrls(demoWebsiteUrls.join('\n')),
+        })
+        await requestPersistentStorage()
+        window.location.assign(routes.collections.compare.href({ collectionId: demo.id }))
+      } catch (caught) {
+        working = false
+        error = messageFrom(caught, 'The demo collection could not be opened.')
         await handle.update()
       }
     }
@@ -495,6 +518,21 @@ export const SiteBySiteApp = clientEntry(
                     {working ? 'Saving locally…' : 'Start comparing'}
                   </button>
                 </form>
+
+                <section class="home-import-method home-demo-method" aria-labelledby="demo-heading">
+                  <div class="home-method-heading">
+                    <h2 id="demo-heading">{demoCollectionName}</h2>
+                    <span>{demoWebsiteUrls.length} sites</span>
+                  </div>
+                  <button
+                    class="home-control home-demo-control"
+                    type="button"
+                    disabled={working || !library}
+                    mix={on<HTMLButtonElement>('click', () => void startDemo())}
+                  >
+                    {working ? 'Opening…' : 'Start demo'}
+                  </button>
+                </section>
               </div>
             </section>
 

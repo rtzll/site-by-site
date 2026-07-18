@@ -62,4 +62,30 @@ describe('saved collection navigation', () => {
     )
     assert.equal(rankingWidth, mobileMainWidth)
   })
+
+  it('starts and reopens the bundled demo collection', { timeout: 15_000 }, async (t) => {
+    let server = await createTestServer(createAppRouter().fetch)
+    let page = await t.serve(server)
+
+    await page.goto('/')
+    let startDemo = page.getByRole('button', { name: 'Start demo' })
+    await startDemo.click()
+    await page.waitForURL(/\/collections\/[^/]+\/compare$/)
+    await page.locator('[data-comparison]').waitFor()
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/')
+    let mobileHomeWidth = await page.locator('.home-main').evaluate(
+      (element) => element.getBoundingClientRect().width,
+    )
+    assert.equal(mobileHomeWidth, 366)
+    let demoLink = page.getByRole('link', { name: /Personal sites demo/ })
+    assert.match(await demoLink.innerText(), /34 sites/)
+    assert.equal(await demoLink.count(), 1)
+
+    await page.getByRole('button', { name: 'Start demo' }).click()
+    await page.waitForURL(/\/collections\/[^/]+\/compare$/)
+    await page.goto('/')
+    assert.equal(await page.getByRole('link', { name: /Personal sites demo/ }).count(), 1)
+  })
 })
