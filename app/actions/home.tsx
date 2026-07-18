@@ -10,7 +10,7 @@ export function AppPage(
     ? 'comparison-body'
     : handle.props.page === 'home'
       ? 'home-body'
-      : undefined
+      : 'workspace-body'
 
   return () => (
     <Document

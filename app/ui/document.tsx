@@ -11,7 +11,7 @@ export interface DocumentProps {
 export function Document(handle: Handle<DocumentProps>) {
   return () => {
     let { children, title = 'Site by Site', bodyClass } = handle.props
-    let darkCanvas = bodyClass === 'comparison-body' || bodyClass === 'home-body'
+    let darkCanvas = bodyClass === 'comparison-body' || bodyClass === 'home-body' || bodyClass === 'workspace-body'
 
     return (
       <html lang="en" mix={htmlStyle}>
@@ -41,7 +41,7 @@ const htmlStyle = css({
   minWidth: '320px',
   background: '#f4f1e9',
   WebkitFontSmoothing: 'antialiased',
-  '&:has(body.home-body), &:has(body.comparison-body)': { background: '#171714' },
+  '&:has(body.home-body), &:has(body.workspace-body), &:has(body.comparison-body)': { background: '#171714' },
 })
 
 const bodyStyle = css({
@@ -54,6 +54,7 @@ const bodyStyle = css({
   fontFeatureSettings: '"cv02", "cv03", "cv04", "cv11", "ss01", "ss03"',
   fontSynthesis: 'none',
   '&.home-body': { color: 'white', background: '#171714', colorScheme: 'dark' },
+  '&.workspace-body': { color: 'white', background: '#171714', colorScheme: 'dark' },
   '& *, & *::before, & *::after': { boxSizing: 'border-box' },
   '& button, & a': { WebkitTapHighlightColor: 'transparent' },
 })

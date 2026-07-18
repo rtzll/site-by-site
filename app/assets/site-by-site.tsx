@@ -524,47 +524,46 @@ export const SiteBySiteApp = clientEntry(
 
     function renderCollection() {
       return (
-        <div class="app-shell">
-          <AppHeader collectionId={collection?.id} collectionName={collection?.name} />
-          <main class="page-main isolate">
+        <div class="app-shell workspace-shell">
+          <AppHeader collectionId={collection?.id} />
+          <main class="workspace-main isolate">
             {loading ? <LoadingPage /> : !collection ? <MissingCollection /> : (
               <>
-                <div class="page-heading collection-heading">
-                  <p class="eyebrow">Collection</p>
+                <div class="workspace-heading">
                   <h1>{collection.name}</h1>
-                  <p>Your ordered reference library becomes clearer with every comparison.</p>
+                  <div class="workspace-controls" aria-label="Collection actions">
+                    <a href={routes.collections.compare.href({ collectionId: collection.id })}>
+                      Compare
+                    </a>
+                    <button type="button" mix={on<HTMLButtonElement>('click', () => void exportBackup())}>
+                      Download backup
+                    </button>
+                  </div>
                 </div>
-                {error ? <p class="form-error" role="alert">{error}</p> : null}
-                <dl class="stats-row">
-                  <div><dt>Websites</dt><dd>{collection.websiteCount}</dd></div>
-                  <div><dt>Available</dt><dd>{collection.availableCount}</dd></div>
-                  <div><dt>Unavailable</dt><dd>{collection.unavailableCount}</dd></div>
-                  <div><dt>Comparisons</dt><dd>{collection.comparisonCount}</dd></div>
-                </dl>
-                <div class="collection-actions">
-                  <a class="button button-primary" href={routes.collections.compare.href({ collectionId: collection.id })}>
-                    Continue comparing
-                  </a>
-                  <a class="button button-secondary" href={routes.collections.ranking.href({ collectionId: collection.id })}>
-                    View ranking
-                  </a>
-                  <button class="button button-secondary" type="button" mix={on<HTMLButtonElement>('click', () => void exportBackup())}>
-                    Download backup
-                  </button>
+                {error ? <p class="workspace-error" role="alert">{error}</p> : null}
+                <div class="workspace-stats-container">
+                  <dl class="workspace-stats">
+                    <div><dt>Websites</dt><dd>{collection.websiteCount}</dd></div>
+                    <div><dt>Available</dt><dd>{collection.availableCount}</dd></div>
+                    <div><dt>Unavailable</dt><dd>{collection.unavailableCount}</dd></div>
+                    <div><dt>Comparisons</dt><dd>{collection.comparisonCount}</dd></div>
+                  </dl>
                 </div>
-                <div class="collection-settings">
+                <div class="workspace-settings">
                   <details>
                     <summary>Rename collection</summary>
                     <form class="compact-form" mix={on<HTMLFormElement>('submit', renameCollection)}>
-                      <input name="name" defaultValue={collection.name} maxLength={80} required />
-                      <button class="button button-secondary button-small" type="submit">Rename</button>
+                      <label class="sr-only" for="collection-name">Collection name</label>
+                      <input id="collection-name" name="name" defaultValue={collection.name} maxLength={80} required />
+                      <button class="workspace-control" type="submit">Rename</button>
                     </form>
                   </details>
                   <details>
                     <summary>Add websites</summary>
                     <form class="compact-form vertical-form" mix={on<HTMLFormElement>('submit', addWebsites)}>
-                      <textarea name="urls" required></textarea>
-                      <button class="button button-secondary button-small" type="submit" disabled={working}>
+                      <label class="sr-only" for="additional-urls">Website links</label>
+                      <textarea id="additional-urls" name="urls" required></textarea>
+                      <button class="workspace-control" type="submit" disabled={working}>
                         {working ? 'Saving…' : 'Add websites'}
                       </button>
                     </form>
@@ -579,20 +578,18 @@ export const SiteBySiteApp = clientEntry(
 
     function renderRanking() {
       return (
-        <div class="app-shell">
-          <AppHeader collectionId={collection?.id} collectionName={collection?.name} />
-          <main class="page-main isolate">
+        <div class="app-shell workspace-shell">
+          <AppHeader collectionId={collection?.id} />
+          <main class="workspace-main isolate">
             {loading ? <LoadingPage /> : !collection ? <MissingCollection /> : (
               <>
-                <div class="page-heading ranking-heading">
-                  <p class="eyebrow">Current ranking</p>
+                <div class="workspace-heading">
                   <h1>{collection.name}</h1>
-                  <p>The order matters more than the score. Keep comparing to sharpen it.</p>
-                </div>
-                <div class="ranking-actions">
-                  <a class="button button-primary" href={routes.collections.compare.href({ collectionId: collection.id })}>
-                    Continue comparing
-                  </a>
+                  <div class="workspace-controls" aria-label="Ranking actions">
+                    <a href={routes.collections.compare.href({ collectionId: collection.id })}>
+                      Compare
+                    </a>
+                  </div>
                 </div>
                 <div class="table-scroll">
                   <div class="table-inner">
@@ -606,7 +603,6 @@ export const SiteBySiteApp = clientEntry(
                             <td class="rank-position">{index + 1}</td>
                             <td>
                               <div class="site-cell">
-                                <span class="thumbnail-placeholder">{website.domain.slice(0, 1).toUpperCase()}</span>
                                 <span class="site-copy">
                                   <span class="site-title">{website.title ?? website.domain}</span>
                                   <span class="site-domain">
@@ -642,7 +638,7 @@ export const SiteBySiteApp = clientEntry(
           <div class="comparison-empty">
             <p class="eyebrow">Only in this browser</p>
             <h1>Collection not found.</h1>
-            <a class="button button-primary" href={routes.home.href()}>Return home</a>
+            <a class="workspace-control" href={routes.home.href()}>Return home</a>
           </div>
         )
       }
@@ -652,7 +648,7 @@ export const SiteBySiteApp = clientEntry(
             <p class="eyebrow">Comparison paused</p>
             <h1>Two available sites are needed.</h1>
             <p>Return to the collection to add more websites.</p>
-            <a class="button button-primary" href={routes.collections.show.href({ collectionId: collection.id })}>
+            <a class="workspace-control" href={routes.collections.show.href({ collectionId: collection.id })}>
               View collection
             </a>
           </div>
@@ -758,20 +754,18 @@ export const SiteBySiteApp = clientEntry(
 
 function LoadingPage() {
   return () => (
-    <div class="page-heading loading-page" aria-live="polite">
-      <p class="eyebrow">This browser</p>
-      <h1>Opening your local library…</h1>
+    <div class="workspace-state loading-page" aria-live="polite">
+      <p>Opening your local library…</p>
     </div>
   )
 }
 
 function MissingCollection() {
   return () => (
-    <div class="page-heading narrow-page">
-      <p class="eyebrow">Only in this browser</p>
-      <h1>Collection not found.</h1>
+    <div class="workspace-state">
+      <h1>Collection not found</h1>
       <p>It may have been created in another browser or cleared from this one.</p>
-      <a class="button button-primary" href={routes.home.href()}>Return home</a>
+      <a class="workspace-control" href={routes.home.href()}>Return home</a>
     </div>
   )
 }
