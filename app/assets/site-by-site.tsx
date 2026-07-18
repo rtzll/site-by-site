@@ -2,6 +2,7 @@ import {
   clientEntry,
   on,
   type Handle,
+  type RemixNode,
   type SerializableProps,
 } from 'remix/ui'
 
@@ -404,7 +405,7 @@ export const SiteBySiteApp = clientEntry(
             <section class="home-entry" aria-labelledby="home-heading">
               <h1 class="sr-only" id="home-heading">Compare websites side by side</h1>
               <p class="home-summary">
-                Add bookmarks or paste links to compare websites side by side—everything stays in this browser.
+                Add bookmarks or paste links to compare websites side by side. Everything stays in this browser.
               </p>
 
               {error ? <p class="home-error" role="alert">{error}</p> : null}
@@ -535,7 +536,10 @@ export const SiteBySiteApp = clientEntry(
                 <div class="workspace-heading">
                   <h1>{collection.name}</h1>
                   <div class="workspace-controls" aria-label="Collection actions">
-                    <a href={routes.collections.compare.href({ collectionId: collection.id })}>
+                    <a
+                      href={routes.collections.compare.href({ collectionId: collection.id })}
+                      rmx-document=""
+                    >
                       Compare
                     </a>
                     <button type="button" mix={on<HTMLButtonElement>('click', () => void exportBackup())}>
@@ -589,7 +593,10 @@ export const SiteBySiteApp = clientEntry(
                 <div class="workspace-heading">
                   <h1>{collection.name}</h1>
                   <div class="workspace-controls" aria-label="Ranking actions">
-                    <a href={routes.collections.compare.href({ collectionId: collection.id })}>
+                    <a
+                      href={routes.collections.compare.href({ collectionId: collection.id })}
+                      rmx-document=""
+                    >
                       Compare
                     </a>
                   </div>
@@ -632,29 +639,48 @@ export const SiteBySiteApp = clientEntry(
       )
     }
 
+    function renderComparisonState(content: RemixNode, collectionId?: string) {
+      return (
+        <div class="app-shell workspace-shell">
+          <AppHeader collectionId={collectionId} />
+          <main class="workspace-main isolate">{content}</main>
+        </div>
+      )
+    }
+
     function renderComparison() {
       if (loading) {
-        return <div class="comparison-empty"><p>Opening your local library…</p></div>
+        return renderComparisonState(
+          <div class="workspace-state loading-page" aria-live="polite">
+            <p>Opening your local library…</p>
+          </div>,
+        )
       }
       if (!collection) {
-        return (
-          <div class="comparison-empty">
-            <p class="eyebrow">Only in this browser</p>
-            <h1>Collection not found.</h1>
-            <a class="workspace-control" href={routes.home.href()}>Return home</a>
-          </div>
+        return renderComparisonState(
+          <div class="workspace-state">
+            <h1>Collection not found</h1>
+            <p>It may have been created in another browser or cleared from this one.</p>
+            <a class="workspace-control" href={routes.home.href()} rmx-document="">
+              Return home
+            </a>
+          </div>,
         )
       }
       if (!pair) {
-        return (
-          <div class="comparison-empty">
-            <p class="eyebrow">Comparison paused</p>
-            <h1>Two available sites are needed.</h1>
+        return renderComparisonState(
+          <div class="workspace-state">
+            <h1>Two available sites are needed</h1>
             <p>Return to the collection to add more websites.</p>
-            <a class="workspace-control" href={routes.collections.show.href({ collectionId: collection.id })}>
+            <a
+              class="workspace-control"
+              href={routes.collections.show.href({ collectionId: collection.id })}
+              rmx-document=""
+            >
               View collection
             </a>
-          </div>
+          </div>,
+          collection.id,
         )
       }
 
@@ -768,7 +794,7 @@ function MissingCollection() {
     <div class="workspace-state">
       <h1>Collection not found</h1>
       <p>It may have been created in another browser or cleared from this one.</p>
-      <a class="workspace-control" href={routes.home.href()}>Return home</a>
+      <a class="workspace-control" href={routes.home.href()} rmx-document="">Return home</a>
     </div>
   )
 }

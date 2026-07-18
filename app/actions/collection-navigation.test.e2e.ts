@@ -28,5 +28,38 @@ describe('saved collection navigation', () => {
     let pageText = await page.locator('body').innerText()
     assert.match(pageText, /Untitled collection/)
     assert.doesNotMatch(pageText, /Collection not found/)
+
+    let collectionUrl = page.url()
+    let desktopMainWidth = await page.locator('.workspace-main').evaluate(
+      (element) => element.getBoundingClientRect().width,
+    )
+    let desktopHeaderWidth = await page.locator('.workspace-shell .app-header').evaluate(
+      (element) => element.getBoundingClientRect().width,
+    )
+    assert.ok(desktopMainWidth <= 608)
+    assert.equal(desktopHeaderWidth, desktopMainWidth)
+
+    let compareLink = page.getByRole('link', { name: 'Compare' })
+    assert.equal(await compareLink.getAttribute('rmx-document'), '')
+    await compareLink.click()
+    await page.locator('[data-comparison]').waitFor()
+    assert.doesNotMatch(await page.locator('body').innerText(), /Two available sites are needed/)
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto(collectionUrl)
+    await page.getByRole('heading', { name: 'Untitled collection' }).waitFor()
+    let mobileMainWidth = await page.locator('.workspace-main').evaluate(
+      (element) => element.getBoundingClientRect().width,
+    )
+    assert.equal(mobileMainWidth, 366)
+
+    let rankingLink = page.getByRole('link', { name: 'Ranking' })
+    assert.equal(await rankingLink.getAttribute('rmx-document'), '')
+    await rankingLink.click()
+    await page.locator('.ranking-table').waitFor()
+    let rankingWidth = await page.locator('.workspace-main').evaluate(
+      (element) => element.getBoundingClientRect().width,
+    )
+    assert.equal(rankingWidth, mobileMainWidth)
   })
 })

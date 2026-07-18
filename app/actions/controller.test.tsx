@@ -12,8 +12,10 @@ describe('local-first application routes', () => {
 
     assert.equal(response.status, 200)
     let html = await response.text()
-    assert.match(html, /Add bookmarks or paste links to compare websites side by side/)
-    assert.match(html, /everything stays in this browser/i)
+    assert.match(
+      html,
+      /Add bookmarks or paste links to compare websites side by side\. Everything stays in this browser\./,
+    )
     assert.doesNotMatch(html, /A quieter way to decide/)
   })
 

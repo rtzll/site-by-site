@@ -80,11 +80,11 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 .home-library-meta { flex-shrink: 0; color: rgb(255 255 255 / 48%); }
 
 .workspace-shell { min-height: 100dvh; background: #171714; color: white; --workspace-type: .875rem; }
-.workspace-shell .app-header { border-color: rgb(255 255 255 / 12%); }
+.workspace-shell .app-header { width: min(100% - 2rem, 38rem); border-color: rgb(255 255 255 / 12%); }
 .workspace-shell .wordmark { color: white; font-weight: 500; letter-spacing: 0; }
 .workspace-shell .header-actions a { color: rgb(255 255 255 / 48%); font-size: var(--workspace-type); }
 .workspace-shell .header-actions a:hover { color: white; }
-.workspace-main { width: min(100% - 2rem, 72rem); margin-inline: auto; padding-block: clamp(2.5rem, 7vw, 5rem); }
+.workspace-main { width: min(100% - 2rem, 38rem); margin-inline: auto; padding-block: clamp(2.5rem, 7vw, 5rem); }
 .workspace-heading { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 1rem; padding-bottom: 1rem; }
 .workspace-heading h1 { min-width: 0; overflow: hidden; color: white; font-size: 1rem; font-weight: 500; letter-spacing: 0; line-height: normal; text-overflow: ellipsis; white-space: nowrap; }
 .workspace-controls { display: flex; flex-shrink: 0; overflow: hidden; border: 1px solid rgb(255 255 255 / 16%); border-radius: .45rem; background: rgb(10 10 10 / 54%); }
@@ -140,9 +140,6 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 .open-cell a:hover { color: white; }
 
 .comparison-body { overflow: hidden; background: #111; }
-.comparison-empty { position: fixed; inset: 0; display: grid; place-content: center; justify-items: start; gap: 1.25rem; padding: 2rem; background: #171714; color: white; }
-.comparison-empty h1 { max-width: 12ch; font-size: clamp(2.5rem, 7vw, 5rem); }
-.comparison-empty > p:not(.eyebrow) { max-width: 38rem; color: rgb(255 255 255 / 62%); line-height: 1.6; }
 .comparison-stage { position: fixed; inset: 0; overflow: hidden; background: #111; --divider: 50%; }
 .site-layer { position: absolute; inset: 0; background: #111; }
 .site-layer-left { clip-path: inset(0 calc(100% - var(--divider)) 0 0); }
@@ -186,7 +183,8 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
   .home-shell .app-header, .home-main { width: min(100% - 1.5rem, 38rem); }
   .home-main { padding-block: 2.5rem 3rem; }
   .workspace-shell { --workspace-type: 1rem; }
-  .workspace-main { width: min(100% - 1.5rem, 72rem); padding-block: 2.5rem 3rem; }
+  .workspace-shell .app-header, .workspace-main { width: min(100% - 1.5rem, 38rem); }
+  .workspace-main { padding-block: 2.5rem 3rem; }
   .table-scroll { margin-inline: -.75rem; padding-inline: .75rem; }
   .comparison-dock { bottom: .75rem; }
   .site-status { bottom: 5.25rem; max-width: calc(50vw - 1rem); }

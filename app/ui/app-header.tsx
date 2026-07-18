@@ -5,13 +5,21 @@ import { routes } from '../routes.ts'
 export function AppHeader(handle: Handle<{ collectionId?: string }>) {
   return () => (
     <header class="app-header">
-      <a class="wordmark" href={routes.home.href()} aria-label="Homepage">Site by Site</a>
+      <a class="wordmark" href={routes.home.href()} aria-label="Homepage" rmx-document="">
+        Site by Site
+      </a>
       {handle.props.collectionId ? (
         <nav class="header-actions" aria-label="Collection">
-          <a href={routes.collections.show.href({ collectionId: handle.props.collectionId })}>
+          <a
+            href={routes.collections.show.href({ collectionId: handle.props.collectionId })}
+            rmx-document=""
+          >
             Collection
           </a>
-          <a href={routes.collections.ranking.href({ collectionId: handle.props.collectionId })}>
+          <a
+            href={routes.collections.ranking.href({ collectionId: handle.props.collectionId })}
+            rmx-document=""
+          >
             Ranking
           </a>
         </nav>
