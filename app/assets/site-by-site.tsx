@@ -398,123 +398,120 @@ export const SiteBySiteApp = clientEntry(
 
     function renderHome() {
       return (
-        <div class="app-shell">
+        <div class="app-shell home-shell">
           <AppHeader />
-          <main class="import-main isolate">
-            <section class="intro">
-              <p class="eyebrow">A quieter way to decide</p>
-              <h1>Rank the websites that stay with you.</h1>
-              <p class="intro-copy">
-                Drop bookmarks or paste links. Everything is stored only in this browser—our server never sees your URLs.
+          <main class="home-main isolate">
+            <section class="home-entry" aria-labelledby="home-heading">
+              <h1 class="sr-only" id="home-heading">Compare websites side by side</h1>
+              <p class="home-summary">
+                Add bookmarks or paste links to compare websites side by side—everything stays in this browser.
               </p>
-            </section>
 
-            {error ? <p class="form-error" role="alert">{error}</p> : null}
+              {error ? <p class="home-error" role="alert">{error}</p> : null}
 
-            <div class="import-grid">
-              <section class="import-panel bookmark-form">
-                <div>
-                  <p class="panel-number">01</p>
-                  <h2>Drop bookmarks</h2>
-                  <p>Use the HTML file exported by your browser. Choose a folder right here.</p>
-                </div>
-                <label
-                  class="drop-zone"
-                  mix={[
-                    on<HTMLLabelElement>('dragenter', (event) => {
-                      event.preventDefault()
-                      event.currentTarget.classList.add('is-dragging')
-                    }),
-                    on<HTMLLabelElement>('dragover', (event) => event.preventDefault()),
-                    on<HTMLLabelElement>('dragleave', (event) => {
-                      event.preventDefault()
-                      event.currentTarget.classList.remove('is-dragging')
-                    }),
-                    on<HTMLLabelElement>('drop', (event) => {
-                      event.preventDefault()
-                      event.currentTarget.classList.remove('is-dragging')
-                      let file = (event as DragEvent).dataTransfer?.files[0]
-                      if (file) void readBookmarkFile(file)
-                    }),
-                  ]}
-                >
-                  <input
-                    class="drop-input"
-                    type="file"
-                    accept=".html,text/html"
-                    disabled={!library}
-                    mix={on<HTMLInputElement>('change', (event) => {
-                      let file = event.currentTarget.files?.[0]
-                      if (file) void readBookmarkFile(file)
-                    })}
-                  />
-                  <span class="drop-title">Choose or drop an HTML file</span>
-                  <span class="drop-note">Parsed locally · up to 25 MB</span>
-                </label>
-                {bookmarkFolders.length > 0 ? (
-                  <div class="inline-folder-picker">
-                    <label for="bookmark-folder">Folder</label>
-                    <select
-                      id="bookmark-folder"
-                      value={selectedFolderPath ?? ''}
-                      mix={on<HTMLSelectElement>('change', (event) => {
-                        selectedFolderPath = event.currentTarget.value
-                        void handle.update()
-                      })}
-                    >
-                      {bookmarkFolders.map((folder) => (
-                        <option value={folder.path}>{folder.path} · {folder.urls.length}</option>
-                      ))}
-                    </select>
-                    <button
-                      class="button button-primary"
-                      type="button"
-                      disabled={working || !library}
-                      mix={on<HTMLButtonElement>('click', () => void importBookmarkFolder())}
-                    >
-                      {working ? 'Saving…' : 'Compare this folder'}
-                    </button>
+              <div class="home-import">
+                <section class="home-import-method" aria-labelledby="bookmark-heading">
+                  <div class="home-method-heading">
+                    <h2 id="bookmark-heading">Bookmarks</h2>
+                    <span>HTML · 25 MB max</span>
                   </div>
-                ) : null}
-              </section>
+                  <label
+                    class="home-drop-zone"
+                    mix={[
+                      on<HTMLLabelElement>('dragenter', (event) => {
+                        event.preventDefault()
+                        event.currentTarget.classList.add('is-dragging')
+                      }),
+                      on<HTMLLabelElement>('dragover', (event) => event.preventDefault()),
+                      on<HTMLLabelElement>('dragleave', (event) => {
+                        event.preventDefault()
+                        event.currentTarget.classList.remove('is-dragging')
+                      }),
+                      on<HTMLLabelElement>('drop', (event) => {
+                        event.preventDefault()
+                        event.currentTarget.classList.remove('is-dragging')
+                        let file = (event as DragEvent).dataTransfer?.files[0]
+                        if (file) void readBookmarkFile(file)
+                      }),
+                    ]}
+                  >
+                    <input
+                      class="drop-input"
+                      type="file"
+                      name="bookmarks"
+                      accept=".html,text/html"
+                      disabled={!library}
+                      mix={on<HTMLInputElement>('change', (event) => {
+                        let file = event.currentTarget.files?.[0]
+                        if (file) void readBookmarkFile(file)
+                      })}
+                    />
+                    <span>Drop a bookmarks file or choose one</span>
+                  </label>
+                  {bookmarkFolders.length > 0 ? (
+                    <div class="home-folder-picker">
+                      <label for="bookmark-folder">Folder</label>
+                      <div class="home-folder-controls">
+                        <select
+                          id="bookmark-folder"
+                          name="bookmark-folder"
+                          value={selectedFolderPath ?? ''}
+                          mix={on<HTMLSelectElement>('change', (event) => {
+                            selectedFolderPath = event.currentTarget.value
+                            void handle.update()
+                          })}
+                        >
+                          {bookmarkFolders.map((folder) => (
+                            <option value={folder.path}>{folder.path} · {folder.urls.length}</option>
+                          ))}
+                        </select>
+                        <button
+                          class="home-control"
+                          type="button"
+                          disabled={working || !library}
+                          mix={on<HTMLButtonElement>('click', () => void importBookmarkFolder())}
+                        >
+                          {working ? 'Saving…' : 'Compare folder'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+                </section>
 
-              <form class="import-panel paste-form" mix={on<HTMLFormElement>('submit', importPastedUrls)}>
-                <div>
-                  <p class="panel-number">02</p>
-                  <h2>Paste URLs</h2>
-                  <p>Lines, prose, Markdown, and copied lists all work. No collection name needed.</p>
-                </div>
-                <div class="field-stack field-grow">
-                  <label for="urls">Websites</label>
+                <form class="home-import-method home-links-form" mix={on<HTMLFormElement>('submit', importPastedUrls)}>
+                  <div class="home-method-heading">
+                    <label for="urls">Links</label>
+                    <span>Two or more</span>
+                  </div>
                   <textarea
                     id="urls"
                     name="urls"
+                    rows={4}
                     placeholder={'https://example.com\nhttps://another.example'}
                     required
                   ></textarea>
-                </div>
-                <button class="button button-primary" type="submit" disabled={working || !library}>
-                  {working ? 'Saving locally…' : 'Start comparing'}
-                </button>
-              </form>
-            </div>
+                  <button class="home-control home-submit" type="submit" disabled={working || !library}>
+                    {working ? 'Saving locally…' : 'Start comparing'}
+                  </button>
+                </form>
+              </div>
+            </section>
 
             {collections.length > 0 ? (
-              <section class="saved-collections" aria-labelledby="saved-heading">
-                <div class="saved-heading-row">
-                  <div>
-                    <p class="eyebrow">This browser</p>
-                    <h2 id="saved-heading">Saved collections</h2>
-                  </div>
-                  <button class="text-button" type="button" mix={on<HTMLButtonElement>('click', () => void exportBackup())}>
+              <section class="home-library" aria-labelledby="saved-heading">
+                <div class="home-library-heading">
+                  <h2 id="saved-heading">Saved in this browser</h2>
+                  <button type="button" mix={on<HTMLButtonElement>('click', () => void exportBackup())}>
                     Download backup
                   </button>
                 </div>
-                <div class="saved-list">
+                <div class="home-library-list">
                   {collections.map((saved) => (
                     <a href={routes.collections.show.href({ collectionId: saved.id })}>
                       <span>{saved.name}</span>
-                      <small>{saved.websiteCount} sites · {saved.comparisonCount} comparisons</small>
+                      <span class="home-library-meta">
+                        {saved.websiteCount} sites · {saved.comparisonCount} comparisons
+                      </span>
                     </a>
                   ))}
                 </div>

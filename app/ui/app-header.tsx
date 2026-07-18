@@ -15,9 +15,7 @@ export function AppHeader(handle: Handle<{ collectionId?: string; collectionName
             Ranking
           </a>
         </nav>
-      ) : (
-        <p class="header-note">Website inspiration, ordered by instinct</p>
-      )}
+      ) : null}
     </header>
   )
 }

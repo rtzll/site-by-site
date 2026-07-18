@@ -12,8 +12,9 @@ describe('local-first application routes', () => {
 
     assert.equal(response.status, 200)
     let html = await response.text()
-    assert.match(html, /Rank the websites that stay with you/)
-    assert.match(html, /stored only in this browser/i)
+    assert.match(html, /Add bookmarks or paste links to compare websites side by side/)
+    assert.match(html, /everything stays in this browser/i)
+    assert.doesNotMatch(html, /A quieter way to decide/)
   })
 
   it('renders collection views without knowing their contents', async () => {

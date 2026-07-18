@@ -6,10 +6,16 @@ import { Document } from '../ui/document.tsx'
 export function AppPage(
   handle: Handle<{ page: AppPageKind; collectionId?: string }>,
 ) {
+  let bodyClass = handle.props.page === 'compare'
+    ? 'comparison-body'
+    : handle.props.page === 'home'
+      ? 'home-body'
+      : undefined
+
   return () => (
     <Document
       title={titleFor(handle.props.page)}
-      bodyClass={handle.props.page === 'compare' ? 'comparison-body' : undefined}
+      bodyClass={bodyClass}
     >
       <SiteBySiteApp page={handle.props.page} collectionId={handle.props.collectionId} />
     </Document>
