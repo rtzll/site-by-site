@@ -23,7 +23,23 @@ pnpm build
 pnpm check
 ```
 
-`pnpm build` creates the production browser bundle in `dist/client`. `pnpm start` serves that bundle through the current Node runtime. Cloudflare configuration is intentionally deferred; the browser-owned data model means a future Worker only needs to serve the application shell and static assets.
+`pnpm build` creates the production Worker and browser bundle in `dist`. `pnpm start` remains available for the Node runtime, while Cloudflare production and preview builds use the same application router through `workers/app.ts`.
+
+## Deployment
+
+The production Worker is configured for `site-by-site.christianrotzoll.com`. Build and deploy it with:
+
+```sh
+pnpm run deploy
+```
+
+Cloudflare serves the static assets directly and sends application routes to the Worker. The custom-domain route creates the DNS record and certificate through the `christianrotzoll.com` Cloudflare zone.
+
+The `preview` Wrangler environment publishes a separate `workers.dev` Worker without the production custom domain:
+
+```sh
+pnpm run deploy:preview
+```
 
 ## Privacy and persistence
 
@@ -69,7 +85,9 @@ Cross-origin iframes take keyboard focus when a user interacts with them, so the
 ## Architecture
 
 ```text
-server.ts                         Node Fetch server for the current runtime
+server.ts                         Optional local Node Fetch server
+workers/app.ts                    Cloudflare Worker entry
+wrangler.jsonc                    Worker, assets, and custom-domain config
 vite.config.ts                    Production browser bundle
 app/routes.ts                     Read-only typed page routes
 app/actions/                      Application shell controllers

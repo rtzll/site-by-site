@@ -4,11 +4,16 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
+    "build:preview": "CLOUDFLARE_ENV=preview vite build",
     "check": "tsc --noEmit && vite build && NODE_ENV=test remix test",
+    "deploy": "pnpm run build && wrangler deploy",
+    "deploy:preview": "pnpm run build:preview && wrangler deploy",
     "dev": "NODE_ENV=development node --watch-path=app --watch-path=public --watch-path=server.ts --watch-path=vite.config.ts --import remix/node-tsx server.ts",
+    "preview": "pnpm run build:preview && vite preview",
     "start": "NODE_ENV=production node --import remix/node-tsx server.ts",
     "test": "vite build && NODE_ENV=test remix test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "types": "wrangler types --include-runtime=false"
   },
   "engines": {
     "node": ">=24.3.0"
@@ -19,10 +24,12 @@
     "remix": "3.0.0-beta.5"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.45.1",
     "@types/node": "^24.13.3",
     "fake-indexeddb": "^6.2.5",
     "playwright": "1.60.0",
     "typescript": "^6.0.3",
-    "vite": "^7.3.6"
+    "vite": "^7.3.6",
+    "wrangler": "^4.112.0"
   }
 }
