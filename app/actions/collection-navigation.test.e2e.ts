@@ -23,6 +23,14 @@ describe('saved collection navigation', () => {
       let button = document.querySelector<HTMLButtonElement>('.home-submit')
       return button?.disabled === false
     })
+    assert.equal(
+      await page.locator('.home-submit').evaluate((element) => getComputedStyle(element).backgroundColor),
+      'rgba(10, 10, 10, 0.62)',
+    )
+    assert.equal(
+      await page.locator('.home-submit').evaluate((element) => getComputedStyle(element).boxShadow),
+      'none',
+    )
     await page.getByLabel('Links').fill('https://example.com\nhttps://example.org')
     await startButton.click()
     await page.waitForURL(/\/collections\/[^/]+\/compare$/)
@@ -36,7 +44,7 @@ describe('saved collection navigation', () => {
     assert.equal(await page.getByRole('link', { name: 'Ranking' }).getAttribute('aria-current'), null)
     assert.equal(
       await page.locator('.workspace-controls').evaluate((element) => getComputedStyle(element).backgroundColor),
-      'rgba(29, 29, 27, 0.9)',
+      'rgba(10, 10, 10, 0.62)',
     )
 
     let pageText = await page.locator('body').innerText()
