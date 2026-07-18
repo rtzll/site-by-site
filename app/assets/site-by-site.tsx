@@ -176,7 +176,7 @@ export const SiteBySiteApp = clientEntry(
       try {
         let created = await library.createCollection({ sourceType: 'paste', websites: urls })
         await requestPersistentStorage()
-        window.location.assign(routes.collections.compare.href({ collectionId: created.id }))
+        await navigateToComparison(created.id)
       } catch (caught) {
         working = false
         pendingAction = null
@@ -225,7 +225,7 @@ export const SiteBySiteApp = clientEntry(
           websites,
         })
         await requestPersistentStorage()
-        window.location.assign(routes.collections.compare.href({ collectionId: created.id }))
+        await navigateToComparison(created.id)
       } catch (caught) {
         working = false
         pendingAction = null
@@ -249,13 +249,23 @@ export const SiteBySiteApp = clientEntry(
           websites: extractUrls(demoWebsiteUrls.join('\n')),
         })
         await requestPersistentStorage()
-        window.location.assign(routes.collections.compare.href({ collectionId: demo.id }))
+        await navigateToComparison(demo.id)
       } catch (caught) {
         working = false
         pendingAction = null
         error = messageFrom(caught, 'The demo collection could not be opened.')
         await handle.update()
       }
+    }
+
+    async function navigateToComparison(collectionId: string) {
+      if (library && handle.props.page === 'home') {
+        collections = await library.listCollections()
+      }
+      working = false
+      pendingAction = null
+      await handle.update()
+      window.location.assign(routes.collections.compare.href({ collectionId }))
     }
 
     async function addWebsites(event: Event) {

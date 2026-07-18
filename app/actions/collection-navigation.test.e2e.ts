@@ -113,6 +113,28 @@ describe('saved collection navigation', () => {
     await page.waitForURL(/\/collections\/[^/]+\/compare$/)
     await page.locator('[data-comparison]').waitFor()
 
+    await page.goBack()
+    await page.waitForURL('/')
+    let startComparing = page.getByRole('button', { name: 'Start comparing' })
+    let reopenedDemo = page.getByRole('button', { name: 'Open demo' })
+    assert.equal(await startComparing.isEnabled(), true)
+    assert.equal(await reopenedDemo.isEnabled(), true)
+    assert.doesNotMatch(await page.locator('body').innerText(), /Opening…/)
+    assert.equal(await page.getByRole('link', { name: /Personal sites demo/ }).count(), 1)
+
+    await page.getByLabel('Links').fill('https://example.com\nhttps://example.org')
+    await startComparing.click()
+    await page.waitForURL(/\/collections\/[^/]+\/compare$/)
+    await page.locator('[data-comparison]').waitFor()
+
+    await page.goBack()
+    await page.waitForURL('/')
+    reopenedDemo = page.getByRole('button', { name: 'Open demo' })
+    assert.equal(await reopenedDemo.isEnabled(), true)
+    await reopenedDemo.click()
+    await page.waitForURL(/\/collections\/[^/]+\/compare$/)
+    await page.locator('[data-comparison]').waitFor()
+
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/')
     let mobileHomeWidth = await page.locator('.home-main').evaluate(
