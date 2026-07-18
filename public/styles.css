@@ -49,7 +49,7 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 .home-main { width: min(100% - 2rem, 38rem); margin-inline: auto; padding-block: clamp(3rem, 10vh, 6rem) 4rem; }
 .home-entry { display: grid; gap: 1rem; }
 .home-summary { max-width: 57ch; color: rgb(255 255 255 / 68%); font-size: var(--home-type); line-height: 1.5; text-wrap: pretty; }
-.home-import, .home-library { overflow: hidden; border: 1px solid rgb(255 255 255 / 16%); border-radius: .55rem; background: rgb(10 10 10 / 62%); backdrop-filter: blur(16px); }
+.home-import, .home-library { overflow: hidden; border: 1px solid rgb(255 255 255 / 16%); border-radius: .55rem; background: rgb(255 255 255 / 4%); }
 .home-import-method { display: grid; gap: .75rem; padding: .75rem; border-top: 1px solid rgb(255 255 255 / 12%); }
 .home-import-method:first-child { border-top: 0; }
 .home-method-heading, .home-library-heading { display: flex; min-width: 0; align-items: baseline; justify-content: space-between; gap: 1rem; font-size: var(--home-type); }
@@ -98,12 +98,12 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 .workspace-control:disabled { cursor: default; opacity: .45; }
 .workspace-error { margin-bottom: 1rem; padding: .65rem .75rem; border: 1px solid rgb(255 255 255 / 16%); border-radius: .45rem; background: rgb(255 255 255 / 6%); color: rgb(255 255 255 / 76%); font-size: var(--workspace-type); line-height: 1.5; }
 .workspace-stats-container { container-type: inline-size; }
-.workspace-stats { display: grid; grid-template-columns: repeat(4, 1fr); overflow: hidden; margin: 0; border: 1px solid rgb(255 255 255 / 16%); border-radius: .55rem; background: rgb(10 10 10 / 54%); }
+.workspace-stats { display: grid; grid-template-columns: repeat(4, 1fr); overflow: hidden; margin: 0; border: 1px solid rgb(255 255 255 / 16%); border-radius: .55rem; background: rgb(255 255 255 / 4%); }
 .workspace-stats div { display: grid; min-width: 0; gap: .45rem; padding: .75rem; border-left: 1px solid rgb(255 255 255 / 12%); }
 .workspace-stats div:first-child { border-left: 0; }
 .workspace-stats dt { overflow: hidden; color: white; font-size: var(--workspace-type); font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
 .workspace-stats dd { margin: 0; color: rgb(255 255 255 / 68%); font-size: 1.25rem; font-variant-numeric: tabular-nums; }
-.workspace-settings { display: grid; max-width: 38rem; overflow: hidden; margin-top: 1rem; border: 1px solid rgb(255 255 255 / 16%); border-radius: .55rem; background: rgb(10 10 10 / 54%); }
+.workspace-settings { display: grid; max-width: 38rem; overflow: hidden; margin-top: 1rem; border: 1px solid rgb(255 255 255 / 16%); border-radius: .55rem; background: rgb(255 255 255 / 4%); }
 .workspace-settings details { border-top: 1px solid rgb(255 255 255 / 12%); }
 .workspace-settings details:first-child { border-top: 0; }
 .workspace-settings summary { display: flex; min-height: 2.5rem; cursor: pointer; align-items: center; padding: .55rem .75rem; color: white; font-size: var(--workspace-type); }
@@ -112,7 +112,7 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 .compact-form input { min-height: 2.25rem; }
 .compact-form textarea { min-height: 6.5rem; resize: vertical; }
 .vertical-form { align-items: flex-start; flex-direction: column; }
-.workspace-state { display: grid; width: min(100%, 30rem); gap: .75rem; padding: .75rem; border: 1px solid rgb(255 255 255 / 16%); border-radius: .55rem; background: rgb(10 10 10 / 54%); }
+.workspace-state { display: grid; width: min(100%, 30rem); gap: .75rem; padding: .75rem; border: 1px solid rgb(255 255 255 / 16%); border-radius: .55rem; background: rgb(255 255 255 / 4%); }
 .workspace-state h1 { color: white; font-size: var(--workspace-type); font-weight: 500; letter-spacing: 0; line-height: normal; }
 .workspace-state p { color: rgb(255 255 255 / 68%); font-size: var(--workspace-type); line-height: 1.5; }
 .loading-page { opacity: .65; }
