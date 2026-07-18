@@ -29,6 +29,14 @@ interface SiteBySiteAppProps extends SerializableProps {
   collectionId?: string
 }
 
+type PendingAction =
+  | 'import-bookmarks'
+  | 'import-links'
+  | 'open-demo'
+  | 'rename-collection'
+  | 'add-websites'
+  | null
+
 export const SiteBySiteApp = clientEntry(
   SiteBySiteEntryId,
   function SiteBySiteApp(handle: Handle<SiteBySiteAppProps>) {
@@ -39,6 +47,7 @@ export const SiteBySiteApp = clientEntry(
     let pair: ComparisonPair | null = null
     let loading = handle.props.page !== 'home'
     let working = false
+    let pendingAction: PendingAction = null
     let error: string | null = null
     let bookmarkFolders: BookmarkFolder[] = []
     let selectedFolderPath: string | null = null
@@ -161,6 +170,7 @@ export const SiteBySiteApp = clientEntry(
       }
 
       working = true
+      pendingAction = 'import-links'
       error = null
       await handle.update()
       try {
@@ -169,6 +179,7 @@ export const SiteBySiteApp = clientEntry(
         window.location.assign(routes.collections.compare.href({ collectionId: created.id }))
       } catch (caught) {
         working = false
+        pendingAction = null
         error = messageFrom(caught, 'The collection could not be saved.')
         await handle.update()
       }
@@ -204,6 +215,7 @@ export const SiteBySiteApp = clientEntry(
       }
 
       working = true
+      pendingAction = 'import-bookmarks'
       error = null
       await handle.update()
       try {
@@ -216,6 +228,7 @@ export const SiteBySiteApp = clientEntry(
         window.location.assign(routes.collections.compare.href({ collectionId: created.id }))
       } catch (caught) {
         working = false
+        pendingAction = null
         error = messageFrom(caught, 'The bookmarks could not be saved.')
         await handle.update()
       }
@@ -225,6 +238,7 @@ export const SiteBySiteApp = clientEntry(
       if (!library || working) return
 
       working = true
+      pendingAction = 'open-demo'
       error = null
       await handle.update()
       try {
@@ -238,6 +252,7 @@ export const SiteBySiteApp = clientEntry(
         window.location.assign(routes.collections.compare.href({ collectionId: demo.id }))
       } catch (caught) {
         working = false
+        pendingAction = null
         error = messageFrom(caught, 'The demo collection could not be opened.')
         await handle.update()
       }
@@ -254,21 +269,39 @@ export const SiteBySiteApp = clientEntry(
         return
       }
       working = true
-      await handle.update()
-      collection = await library.addWebsites(collection.id, websites)
-      working = false
+      pendingAction = 'add-websites'
       error = null
-      form.reset()
       await handle.update()
+      try {
+        collection = await library.addWebsites(collection.id, websites)
+        form.reset()
+      } catch (caught) {
+        error = messageFrom(caught, 'The websites could not be added.')
+      } finally {
+        working = false
+        pendingAction = null
+        await handle.update()
+      }
     }
 
     async function renameCollection(event: Event) {
       event.preventDefault()
-      if (!library || !collection) return
+      if (!library || !collection || working) return
       let form = event.currentTarget as HTMLFormElement
       let name = String(new FormData(form).get('name') ?? '')
-      collection = await library.renameCollection(collection.id, name)
+      working = true
+      pendingAction = 'rename-collection'
+      error = null
       await handle.update()
+      try {
+        collection = await library.renameCollection(collection.id, name)
+      } catch (caught) {
+        error = messageFrom(caught, 'The collection could not be renamed.')
+      } finally {
+        working = false
+        pendingAction = null
+        await handle.update()
+      }
     }
 
     async function submitChoice(choice: VoteChoice) {
@@ -495,7 +528,7 @@ export const SiteBySiteApp = clientEntry(
                           disabled={working || !library}
                           mix={on<HTMLButtonElement>('click', () => void importBookmarkFolder())}
                         >
-                          {working ? 'Saving…' : 'Compare folder'}
+                          {pendingAction === 'import-bookmarks' ? 'Saving…' : 'Compare folder'}
                         </button>
                       </div>
                     </div>
@@ -515,7 +548,7 @@ export const SiteBySiteApp = clientEntry(
                     required
                   ></textarea>
                   <button class="home-control home-submit" type="submit" disabled={working || !library}>
-                    {working ? 'Saving locally…' : 'Start comparing'}
+                    {pendingAction === 'import-links' ? 'Saving locally…' : 'Start comparing'}
                   </button>
                 </form>
 
@@ -530,7 +563,7 @@ export const SiteBySiteApp = clientEntry(
                     disabled={working || !library}
                     mix={on<HTMLButtonElement>('click', () => void startDemo())}
                   >
-                    {working ? 'Opening…' : 'Open demo'}
+                    {pendingAction === 'open-demo' ? 'Opening…' : 'Open demo'}
                   </button>
                 </section>
               </div>
@@ -600,7 +633,9 @@ export const SiteBySiteApp = clientEntry(
                     <form class="compact-form" mix={on<HTMLFormElement>('submit', renameCollection)}>
                       <label class="sr-only" for="collection-name">Collection name</label>
                       <input id="collection-name" name="name" defaultValue={collection.name} maxLength={80} required />
-                      <button class="workspace-control" type="submit">Rename</button>
+                      <button class="workspace-control" type="submit" disabled={working}>
+                        {pendingAction === 'rename-collection' ? 'Saving…' : 'Rename'}
+                      </button>
                     </form>
                   </details>
                   <details>
@@ -609,7 +644,7 @@ export const SiteBySiteApp = clientEntry(
                       <label class="sr-only" for="additional-urls">Website links</label>
                       <textarea id="additional-urls" name="urls" required></textarea>
                       <button class="workspace-control" type="submit" disabled={working}>
-                        {working ? 'Saving…' : 'Add websites'}
+                        {pendingAction === 'add-websites' ? 'Saving…' : 'Add websites'}
                       </button>
                     </form>
                   </details>
