@@ -643,7 +643,13 @@ export const SiteBySiteApp = clientEntry(
                   <div class="table-inner">
                     <table class="ranking-table">
                       <thead>
-                        <tr><th>Position</th><th>Website</th><th>Score</th><th>Comparisons</th><th><span class="sr-only">Open</span></th></tr>
+                        <tr>
+                          <th><span class="sr-only">Position</span><span aria-hidden="true">#</span></th>
+                          <th>Website</th>
+                          <th>Score</th>
+                          <th class="comparison-column">Comparisons</th>
+                          <th><span class="sr-only">Open</span></th>
+                        </tr>
                       </thead>
                       <tbody>
                         {ranking.map((website, index) => (
@@ -660,7 +666,7 @@ export const SiteBySiteApp = clientEntry(
                               </div>
                             </td>
                             <td class="numeric-cell">{website.rating}</td>
-                            <td class="numeric-cell">{website.comparisons}</td>
+                            <td class="numeric-cell comparison-column">{website.comparisons}</td>
                             <td class="open-cell">
                               <a href={website.normalizedUrl} target="_blank" rel="noreferrer">Open</a>
                             </td>

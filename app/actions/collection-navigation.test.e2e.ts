@@ -61,6 +61,14 @@ describe('saved collection navigation', () => {
     await page.locator('.ranking-table').waitFor()
     assert.equal(await page.getByRole('link', { name: 'Collection' }).getAttribute('aria-current'), null)
     assert.equal(await page.getByRole('link', { name: 'Ranking' }).getAttribute('aria-current'), 'page')
+    assert.equal(
+      await page.locator('.comparison-column').first().evaluate((element) => getComputedStyle(element).display),
+      'none',
+    )
+    assert.equal(
+      await page.locator('.site-domain').first().evaluate((element) => getComputedStyle(element).fontSize),
+      '14px',
+    )
     let rankingWidth = await page.locator('.workspace-main').evaluate(
       (element) => element.getBoundingClientRect().width,
     )

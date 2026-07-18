@@ -132,11 +132,11 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 .ranking-table th:last-child, .ranking-table td:last-child { padding-right: 0; text-align: right; }
 .ranking-table td { padding: .75rem; border-bottom: 1px solid rgb(255 255 255 / 12%); color: white; font-size: var(--workspace-type); }
 .ranking-table tr.is-unavailable { opacity: .48; }
-.rank-position { width: 5rem; color: rgb(255 255 255 / 48%); font-variant-numeric: tabular-nums; }
+.rank-position { width: 3rem; color: rgb(255 255 255 / 48%); font-variant-numeric: tabular-nums; }
 .site-cell { display: flex; min-width: 14rem; align-items: center; }
 .site-copy { display: grid; min-width: 0; gap: .18rem; }
 .site-title { max-width: 28rem; overflow: hidden; font-weight: 500; text-overflow: ellipsis; }
-.site-domain { color: rgb(255 255 255 / 48%); font-size: .75rem; }
+.site-domain { color: rgb(255 255 255 / 48%); font-size: .875rem; }
 .numeric-cell { color: rgb(255 255 255 / 68%); font-variant-numeric: tabular-nums; }
 .open-cell a { color: rgb(255 255 255 / 68%); text-decoration: none; }
 .open-cell a:hover { color: white; }
@@ -200,6 +200,9 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
   .workspace-heading { align-items: flex-start; flex-direction: column; }
   .workspace-heading h1 { overflow: visible; text-overflow: clip; white-space: normal; }
   .compact-form { align-items: stretch; flex-direction: column; }
+  .comparison-column { display: none; }
+  .site-cell { width: 11rem; min-width: 11rem; }
+  .site-title, .site-domain { max-width: 11rem; overflow: hidden; text-overflow: ellipsis; }
 }
 
 @media (pointer: coarse) {
