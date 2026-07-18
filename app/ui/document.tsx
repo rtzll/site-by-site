@@ -11,14 +11,14 @@ export interface DocumentProps {
 export function Document(handle: Handle<DocumentProps>) {
   return () => {
     let { children, title = 'Site by Site', bodyClass } = handle.props
-    let darkCanvas = bodyClass === 'comparison-body' || bodyClass === 'home-body' || bodyClass === 'workspace-body'
+    let darkCanvas = bodyClass === 'comparison-body'
 
     return (
       <html lang="en" mix={htmlStyle}>
         <head>
           <meta charSet="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <meta name="theme-color" content={darkCanvas ? '#171714' : '#f4f1e9'} />
+          <meta name="theme-color" content={darkCanvas ? '#111111' : '#f4f1e9'} />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           <link
@@ -41,7 +41,7 @@ const htmlStyle = css({
   minWidth: '320px',
   background: '#f4f1e9',
   WebkitFontSmoothing: 'antialiased',
-  '&:has(body.home-body), &:has(body.workspace-body), &:has(body.comparison-body)': { background: '#171714' },
+  '&:has(body.comparison-body)': { background: '#111' },
 })
 
 const bodyStyle = css({
@@ -53,8 +53,8 @@ const bodyStyle = css({
   fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
   fontFeatureSettings: '"cv02", "cv03", "cv04", "cv11", "ss01", "ss03"',
   fontSynthesis: 'none',
-  '&.home-body': { color: 'white', background: '#171714', colorScheme: 'dark' },
-  '&.workspace-body': { color: 'white', background: '#171714', colorScheme: 'dark' },
+  '&.home-body, &.workspace-body': { color: '#1d1d1b', background: '#f4f1e9', colorScheme: 'light' },
+  '&.comparison-body': { color: 'white', background: '#111', colorScheme: 'dark' },
   '& *, & *::before, & *::after': { boxSizing: 'border-box' },
   '& button, & a': { WebkitTapHighlightColor: 'transparent' },
 })

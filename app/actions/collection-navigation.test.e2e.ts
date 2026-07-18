@@ -10,6 +10,14 @@ describe('saved collection navigation', () => {
     let page = await t.serve(server)
 
     await page.goto('/')
+    assert.equal(
+      await page.locator('body').evaluate((element) => getComputedStyle(element).backgroundColor),
+      'rgb(244, 241, 233)',
+    )
+    assert.equal(
+      await page.locator('body').evaluate((element) => getComputedStyle(element).colorScheme),
+      'light',
+    )
     let startButton = page.getByRole('button', { name: 'Start comparing' })
     await page.waitForFunction(() => {
       let button = document.querySelector<HTMLButtonElement>('.home-submit')
@@ -26,6 +34,10 @@ describe('saved collection navigation', () => {
     await page.getByRole('heading', { name: 'Untitled collection' }).waitFor()
     assert.equal(await page.getByRole('link', { name: 'Collection' }).getAttribute('aria-current'), 'page')
     assert.equal(await page.getByRole('link', { name: 'Ranking' }).getAttribute('aria-current'), null)
+    assert.equal(
+      await page.locator('.workspace-controls').evaluate((element) => getComputedStyle(element).backgroundColor),
+      'rgba(29, 29, 27, 0.9)',
+    )
 
     let pageText = await page.locator('body').innerText()
     assert.match(pageText, /Untitled collection/)
@@ -45,6 +57,14 @@ describe('saved collection navigation', () => {
     assert.equal(await compareLink.getAttribute('rmx-document'), '')
     await compareLink.click()
     await page.locator('[data-comparison]').waitFor()
+    assert.equal(
+      await page.locator('body').evaluate((element) => getComputedStyle(element).backgroundColor),
+      'rgb(17, 17, 17)',
+    )
+    assert.equal(
+      await page.locator('body').evaluate((element) => getComputedStyle(element).colorScheme),
+      'dark',
+    )
     assert.doesNotMatch(await page.locator('body').innerText(), /Two available sites are needed/)
 
     await page.setViewportSize({ width: 390, height: 844 })
