@@ -1,121 +1,65 @@
 # Site by Site
 
-Site by Site is a local-first web app for ranking website inspiration through one-versus-one comparisons. Start with the bundled 34-site demo, drop a browser bookmarks export, or paste a mixed list of URLs. Then choose between two full-viewport websites until the collection settles into an order.
+[Site by Site](https://site-by-site.christianrotzoll.com) turns side-by-side website choices into a personal ranking.
 
-## Run locally
+Import a browser bookmarks file, paste a list of URLs, or start with the bundled 34-site demo. Collections, choices, and rankings stay in IndexedDB in your browser.
 
-Site by Site requires Node.js 24.3 or newer and uses the same pnpm line as `books.christianrotzoll.com`.
+## Development
+
+Requires Node.js 24.3 or newer.
 
 ```sh
 corepack enable
 pnpm install
-pnpm dev
+pnpm run dev
 ```
 
 Open [http://localhost:44200](http://localhost:44200).
 
-Useful checks:
+Run the complete verification suite with:
 
 ```sh
-pnpm typecheck
-pnpm test
-pnpm build
-pnpm check
+pnpm run check
 ```
 
-`pnpm build` creates the production Worker and browser bundle in `dist`. `pnpm start` remains available for the Node runtime, while Cloudflare production and preview builds use the same application router through `workers/app.ts`.
+This runs the TypeScript check, production build, and tests.
+
+## Comparison controls
+
+| Action | Control |
+| --- | --- |
+| Choose the left or right site | `←` / `→` |
+| Skip the pair | `↓` |
+| Swap sides | `S` |
+| Mark the left or right site unavailable | `Z` / `X` |
+| Undo the last action | `U` |
+| Reveal one site | Hold `1` / `2` |
+| Inspect or reset the split | Drag or double-click the divider |
+
+If an embedded website takes keyboard focus, click the divider to resume using shortcuts. Comparisons require a window at least 640 pixels wide.
+
+## Data and limitations
+
+The Worker serves the application but does not receive imported URLs, choices, or ranking data. Clearing browser site data removes the local library, so the home page supports exporting and restoring a JSON backup.
+
+Websites are loaded directly in no-referrer iframes. Some sites block embedding with CSP or `X-Frame-Options`; use **Didn’t load?** to exclude one from future pairs.
 
 ## Deployment
 
-The production Worker is configured for `site-by-site.christianrotzoll.com`. Build and deploy it with:
+For a manual production deployment:
 
 ```sh
 pnpm run deploy
 ```
 
-Cloudflare serves the static assets directly and sends application routes to the Worker. The custom-domain route creates the DNS record and certificate through the `christianrotzoll.com` Cloudflare zone.
+Cloudflare GitHub integration settings:
 
-The `preview` Wrangler environment publishes a separate `workers.dev` Worker without the production custom domain:
+| Setting | Value |
+| --- | --- |
+| Production branch | `main` |
+| Build command | `pnpm run build` |
+| Deploy command | `pnpm exec wrangler deploy` |
+| Non-production deploy command | `pnpm exec wrangler versions upload` |
+| Root directory | `.` |
 
-```sh
-pnpm run deploy:preview
-```
-
-## Privacy and persistence
-
-Collections, URLs, votes, Elo ratings, and unavailable-site choices live in IndexedDB under the app’s origin. The implementation uses the small `idb` wrapper and asks the browser for persistent storage after a successful import or restore.
-
-The server:
-
-- renders the application shell
-- serves authored styles and the browser bundle
-- receives only local collection IDs in page paths
-- has no POST route for imports, votes, or URL checks
-- never receives bookmark files or website URLs
-
-Loading a comparison naturally makes the browser contact each third-party website. Comparison iframes use `referrerPolicy="no-referrer"`, so those websites do not receive the Site by Site page URL.
-
-Browser storage remains scoped to one origin and browser profile. Clearing site data removes the library. The home page therefore offers a full-library JSON backup that can be exported or restored. Restore validates the complete file before atomically replacing the current browser library.
-
-## Product flow
-
-1. Start the bundled demo, paste URLs, or drop a standard browser-exported bookmarks HTML file.
-2. The demo copies 34 known-working personal sites into one local collection and reuses it on later visits.
-3. Bookmark folders are parsed and selected inline on the landing page.
-4. A collection is created immediately. Pasted collections receive `Untitled collection`, with a number added when necessary; bookmark imports use the folder name.
-5. The browser stores normalized, deduplicated websites locally and opens the first comparison.
-6. Votes update Elo and comparison statistics atomically in IndexedDB.
-7. Rankings and collection summaries are read from the same local library on later visits.
-8. If a site does not render, mark the left or right site unavailable. It is stored locally and excluded from future pairs.
-9. Undo reverses the most recent vote, skip, or unavailable-site action and returns to the exact previous pair.
-
-## Comparison controls
-
-- `←` chooses the left website
-- `→` chooses the right website
-- `↓` skips the pair
-- `s` swaps the visible sides without reloading either website
-- `z` marks the visible left website unavailable
-- `x` marks the visible right website unavailable
-- `u` undoes the most recent comparison action
-- Hold `1` to reveal the left website
-- Hold `2` to reveal the right website
-- Double-click the divider to reset it
-
-Cross-origin iframes take keyboard focus when a user interacts with them, so the parent page cannot continue receiving arrow keys. A compact bottom dock keeps the controls visible, shows how to resume keyboard input when necessary, and provides left, swap, skip, and right buttons as a reliable fallback. Clicking or dragging the divider returns keyboard control to the parent page without making the divider a tab stop. Swapping is visual only: choices are translated back to the underlying pair before they are stored, so rankings and history remain correct.
-
-The two-site workspace requires a viewport at least 640 pixels wide. Narrower windows show the collection and ranking navigation without loading the comparison iframes.
-
-## Architecture
-
-```text
-server.ts                         Optional local Node Fetch server
-workers/app.ts                    Cloudflare Worker entry
-wrangler.jsonc                    Worker, assets, and custom-domain config
-vite.config.ts                    Production browser bundle
-app/routes.ts                     Read-only typed page routes
-app/actions/                      Application shell controllers
-app/data/demo-websites.ts         Bundled ready-site URLs for the opt-in demo
-app/data/local-library.ts         Typed IndexedDB LocalLibrary module
-app/services/                     Pure pairing and Elo decisions
-app/utils/                        Bookmark and URL parsing
-app/assets/site-by-site.tsx       Browser-owned application and UI state
-app/assets/entry.ts               Explicit Remix 3 client entry
-public/styles.css                 Shared authored CSS
-```
-
-`LocalLibrary` is the persistence seam. Callers work with collection imports, next-pair selection, votes, unavailable sites, undo, rankings, exports, and restores rather than IndexedDB object stores or transactions. Its implementation owns the schema and keeps multi-store comparison and restore updates atomic.
-
-The IndexedDB schema has three object stores:
-
-- `collections` stores names, source types, timestamps, and the refresh-safe current pair
-- `websites` stores normalized URLs, local availability, Elo ratings, and aggregate statistics
-- `comparisons` stores completed choices and recent pair keys
-
-Pair selection prioritizes under-exposed websites, avoids recent pairs when alternatives exist, favors similar ratings, occasionally crosses score ranges, and randomizes left/right placement.
-
-## Embedding limitations
-
-Browsers intentionally do not provide reliable failure events for cross-origin iframes: an iframe `load` event may fire even when a page was blocked, and an `error` event is generally withheld. Site by Site therefore does not guess based on a timeout. Each bottom domain capsule always includes its own “Didn’t load?” action; choosing it replaces that site and remembers the choice locally.
-
-Some websites prevent framing with CSP or `X-Frame-Options`; others may be slow, geographically variable, or require interaction. Snapshot support remains a possible future fallback.
+The Cloudflare Worker name must match `site-by-site-christianrotzoll-com` in `wrangler.jsonc`.
