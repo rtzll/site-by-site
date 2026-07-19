@@ -22,7 +22,7 @@ export function Document(handle: Handle<DocumentProps>) {
         <head>
           <meta charSet="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <meta name="theme-color" content={darkCanvas ? '#111111' : '#f4f1e9'} />
+          <meta name="theme-color" content={darkCanvas ? '#111111' : '#ffffff'} />
           <link rel="preconnect" href="https://rsms.me" />
           <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
           <link rel="stylesheet" href={stylesHref} />
@@ -39,7 +39,7 @@ export function Document(handle: Handle<DocumentProps>) {
 
 const htmlStyle = css({
   minWidth: '320px',
-  background: '#f4f1e9',
+  background: '#fff',
   WebkitFontSmoothing: 'antialiased',
   '&:has(body.comparison-body)': { background: '#111' },
 })
@@ -48,13 +48,13 @@ const bodyStyle = css({
   margin: 0,
   minWidth: '320px',
   minHeight: '100dvh',
-  color: '#1d1d1b',
-  background: '#f4f1e9',
+  color: '#171717',
+  background: '#fff',
   fontFamily: 'InterVariable, Inter, ui-sans-serif, system-ui, sans-serif',
   fontOpticalSizing: 'auto',
   fontFeatureSettings: '"cv02", "cv03", "cv04", "cv11", "ss01", "ss03"',
   fontSynthesis: 'none',
-  '&.home-body, &.workspace-body': { color: '#1d1d1b', background: '#f4f1e9', colorScheme: 'light' },
+  '&.home-body, &.workspace-body': { color: '#171717', background: '#fff', colorScheme: 'light' },
   '&.comparison-body': { color: 'white', background: '#111', colorScheme: 'dark' },
   '& *, & *::before, & *::after': { boxSizing: 'border-box' },
   '& button, & a': { WebkitTapHighlightColor: 'transparent' },

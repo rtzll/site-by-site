@@ -221,6 +221,7 @@ export const SiteBySiteApp = clientEntry(
     function homeDividerPointerDown(event: Event) {
       let pointerEvent = event as PointerEvent
       let divider = event.currentTarget as HTMLButtonElement
+      divider.setAttribute('data-pointer-focus', '')
       divider.focus({ preventScroll: true })
       divider.setPointerCapture(pointerEvent.pointerId)
       draggingHomeDivider = true
@@ -242,6 +243,8 @@ export const SiteBySiteApp = clientEntry(
 
     function homeDividerKeyDown(event: Event) {
       let keyboardEvent = event as KeyboardEvent
+      let divider = event.currentTarget as HTMLButtonElement
+      divider.removeAttribute('data-pointer-focus')
       let nextPercent = homeDividerPercent
       if (keyboardEvent.key === 'ArrowLeft') nextPercent -= 5
       else if (keyboardEvent.key === 'ArrowRight') nextPercent += 5
@@ -695,6 +698,9 @@ export const SiteBySiteApp = clientEntry(
                     on<HTMLButtonElement>('pointerup', homeDividerPointerUp),
                     on<HTMLButtonElement>('pointercancel', homeDividerPointerUp),
                     on<HTMLButtonElement>('keydown', homeDividerKeyDown),
+                    on<HTMLButtonElement>('blur', (event) => {
+                      event.currentTarget.removeAttribute('data-pointer-focus')
+                    }),
                     on<HTMLButtonElement>('dblclick', () => setHomeDivider(50)),
                   ]}
                 >
@@ -777,7 +783,7 @@ export const SiteBySiteApp = clientEntry(
                           </svg>
                         </span>
                         <button
-                          class="home-control"
+                          class="home-control home-control-secondary"
                           type="button"
                           disabled={working || !library}
                           mix={on<HTMLButtonElement>('click', () => void importBookmarkFolder())}
@@ -951,7 +957,11 @@ export const SiteBySiteApp = clientEntry(
                     <form class="compact-form" mix={on<HTMLFormElement>('submit', renameCollection)}>
                       <label class="sr-only" for="collection-name">Collection name</label>
                       <input id="collection-name" name="name" defaultValue={collection.name} maxLength={80} required />
-                      <button class="workspace-control" type="submit" disabled={working}>
+                      <button
+                        class="workspace-control workspace-control-secondary"
+                        type="submit"
+                        disabled={working}
+                      >
                         {pendingAction === 'rename-collection' ? 'Saving…' : 'Rename'}
                       </button>
                     </form>
@@ -961,7 +971,11 @@ export const SiteBySiteApp = clientEntry(
                     <form class="compact-form vertical-form" mix={on<HTMLFormElement>('submit', addWebsites)}>
                       <label class="sr-only" for="additional-urls">Website links</label>
                       <textarea id="additional-urls" name="urls" required></textarea>
-                      <button class="workspace-control" type="submit" disabled={working}>
+                      <button
+                        class="workspace-control workspace-control-secondary"
+                        type="submit"
+                        disabled={working}
+                      >
                         {pendingAction === 'add-websites' ? 'Saving…' : 'Add websites'}
                       </button>
                     </form>
@@ -1012,10 +1026,10 @@ export const SiteBySiteApp = clientEntry(
                       <table class="ranking-table">
                         <thead>
                           <tr>
-                            <th><span class="sr-only">Position</span><span aria-hidden="true">#</span></th>
+                            <th class="numeric-heading"><span class="sr-only">Position</span><span aria-hidden="true">#</span></th>
                             <th>Website</th>
-                            <th>Score</th>
-                            <th class="comparison-column">Comparisons</th>
+                            <th class="numeric-heading">Score</th>
+                            <th class="numeric-heading comparison-column">Comparisons</th>
                             <th><span class="sr-only">Open</span></th>
                           </tr>
                         </thead>
@@ -1224,15 +1238,24 @@ export const SiteBySiteApp = clientEntry(
                   aria-keyshortcuts="u"
                   mix={on<HTMLButtonElement>('click', () => void undoLastComparisonAction())}
                 >
-                  Undo [u]
+                  <span>Undo</span>
+                  <kbd class="shortcut-key" aria-hidden="true">U</kbd>
                 </button>
               ) : null}
             </div>
             <div class="comparison-choices" aria-label="Choose a website">
-              <button type="button" disabled={working} aria-keyshortcuts="ArrowLeft" mix={on<HTMLButtonElement>('click', () => void submitChoice('left'))}>[←] Left</button>
-              <button type="button" disabled={working} aria-keyshortcuts="s" mix={on<HTMLButtonElement>('click', swapSides)}>[s] Swap</button>
-              <button type="button" disabled={working} aria-keyshortcuts="ArrowDown" mix={on<HTMLButtonElement>('click', () => void submitChoice('skip'))}>[↓] Skip</button>
-              <button type="button" disabled={working} aria-keyshortcuts="ArrowRight" mix={on<HTMLButtonElement>('click', () => void submitChoice('right'))}>[→] Right</button>
+              <button type="button" disabled={working} aria-keyshortcuts="ArrowLeft" mix={on<HTMLButtonElement>('click', () => void submitChoice('left'))}>
+                <span>Left</span><kbd class="shortcut-key" aria-hidden="true">←</kbd>
+              </button>
+              <button type="button" disabled={working} aria-keyshortcuts="s" mix={on<HTMLButtonElement>('click', swapSides)}>
+                <span>Swap</span><kbd class="shortcut-key" aria-hidden="true">S</kbd>
+              </button>
+              <button type="button" disabled={working} aria-keyshortcuts="ArrowDown" mix={on<HTMLButtonElement>('click', () => void submitChoice('skip'))}>
+                <span>Skip</span><kbd class="shortcut-key" aria-hidden="true">↓</kbd>
+              </button>
+              <button type="button" disabled={working} aria-keyshortcuts="ArrowRight" mix={on<HTMLButtonElement>('click', () => void submitChoice('right'))}>
+                <span>Right</span><kbd class="shortcut-key" aria-hidden="true">→</kbd>
+              </button>
             </div>
           </div>
           <div class="site-status site-status-left">
@@ -1244,7 +1267,8 @@ export const SiteBySiteApp = clientEntry(
               aria-keyshortcuts="z"
               mix={on<HTMLButtonElement>('click', () => markVisibleSideUnavailable('left'))}
             >
-              [z] Didn’t load?
+              <span>Didn’t load?</span>
+              <kbd class="shortcut-key" aria-hidden="true">Z</kbd>
             </button>
           </div>
           <div class="site-status site-status-right">
@@ -1256,7 +1280,8 @@ export const SiteBySiteApp = clientEntry(
               aria-keyshortcuts="x"
               mix={on<HTMLButtonElement>('click', () => markVisibleSideUnavailable('right'))}
             >
-              [x] Didn’t load?
+              <span>Didn’t load?</span>
+              <kbd class="shortcut-key" aria-hidden="true">X</kbd>
             </button>
           </div>
           <div class={`vote-feedback${feedbackChoice ? ` is-visible feedback-${feedbackChoice}` : ''}`}></div>

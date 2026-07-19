@@ -5,15 +5,20 @@ import { describe, it } from 'remix/test'
 import { createAppRouter } from '../router.ts'
 
 describe('saved collection navigation', () => {
-  it('opens a locally stored collection without a browser refresh', { timeout: 15_000 }, async (t) => {
+  it('preserves the complete local comparison flow and responsive UI contract', { timeout: 30_000 }, async (t) => {
     let server = await createTestServer(createAppRouter().fetch)
     let page = await t.serve(server)
 
     await page.goto('/')
     assert.equal(
       await page.locator('body').evaluate((element) => getComputedStyle(element).backgroundColor),
-      'rgb(244, 241, 233)',
+      'rgb(255, 255, 255)',
     )
+    assert.equal(
+      await page.locator('html').evaluate((element) => getComputedStyle(element).backgroundColor),
+      'rgb(255, 255, 255)',
+    )
+    assert.equal(await page.locator('meta[name="theme-color"]').getAttribute('content'), '#ffffff')
     assert.equal(
       await page.locator('body').evaluate((element) => getComputedStyle(element).colorScheme),
       'light',
@@ -25,7 +30,7 @@ describe('saved collection navigation', () => {
     })
     assert.equal(
       await page.locator('.home-submit').evaluate((element) => getComputedStyle(element).backgroundColor),
-      'rgba(10, 10, 10, 0.62)',
+      'rgb(23, 23, 23)',
     )
     assert.equal(
       await page.locator('.home-submit').evaluate((element) => getComputedStyle(element).boxShadow),
@@ -54,7 +59,7 @@ describe('saved collection navigation', () => {
       await page.getByRole('link', { name: 'Compare' }).evaluate(
         (element) => getComputedStyle(element).backgroundColor,
       ),
-      'rgba(10, 10, 10, 0.62)',
+      'rgb(23, 23, 23)',
     )
     assert.equal(await page.getByRole('button', { name: 'Download backup' }).count(), 0)
 
@@ -71,6 +76,37 @@ describe('saved collection navigation', () => {
     )
     assert.ok(desktopMainWidth <= 608)
     assert.equal(desktopHeaderWidth, desktopMainWidth)
+    assert.equal(
+      await page.locator('.workspace-stats dt').first().evaluate(
+        (element) => getComputedStyle(element).color,
+      ),
+      'rgb(102, 102, 102)',
+    )
+    assert.equal(
+      await page.locator('.workspace-stats dd').first().evaluate(
+        (element) => getComputedStyle(element).color,
+      ),
+      'rgb(23, 23, 23)',
+    )
+    assert.equal(
+      await page.locator('.workspace-stats dd').first().evaluate(
+        (element) => getComputedStyle(element).fontWeight,
+      ),
+      '500',
+    )
+    assert.equal(
+      await page.locator('.workspace-stats dd').first().evaluate(
+        (element) => getComputedStyle(element).fontVariantNumeric,
+      ),
+      'tabular-nums',
+    )
+    await page.locator('.workspace-settings details:first-child summary').click()
+    let renameButton = page.getByRole('button', { name: 'Rename' })
+    await renameButton.focus()
+    assert.equal(
+      await renameButton.evaluate((element) => getComputedStyle(element).outlineColor),
+      'rgb(23, 23, 23)',
+    )
 
     let compareLink = page.getByRole('link', { name: 'Compare' })
     assert.equal(await compareLink.getAttribute('rmx-document'), '')
@@ -86,6 +122,22 @@ describe('saved collection navigation', () => {
       'dark',
     )
     assert.doesNotMatch(await page.locator('body').innerText(), /Two available sites are needed/)
+
+    for (let [name, shortcut, keycap] of [
+      ['Left', 'ArrowLeft', '←'],
+      ['Swap', 's', 'S'],
+      ['Skip', 'ArrowDown', '↓'],
+      ['Right', 'ArrowRight', '→'],
+    ]) {
+      let control = page.getByRole('button', { name, exact: true })
+      assert.equal(await control.getAttribute('aria-keyshortcuts'), shortcut)
+      assert.equal(await control.locator('kbd').innerText(), keycap)
+      assert.equal(await control.locator('kbd').getAttribute('aria-hidden'), 'true')
+    }
+    assert.equal(await page.locator('.site-status-left button').getAttribute('aria-keyshortcuts'), 'z')
+    assert.equal(await page.locator('.site-status-left button kbd').innerText(), 'Z')
+    assert.equal(await page.locator('.site-status-right button').getAttribute('aria-keyshortcuts'), 'x')
+    assert.equal(await page.locator('.site-status-right button kbd').innerText(), 'X')
 
     let comparisonContext = page.locator('.comparison-context')
     assert.equal(await comparisonContext.getAttribute('href'), new URL(collectionUrl).pathname)
@@ -104,8 +156,10 @@ describe('saved collection navigation', () => {
     let originalLeftDomain = await page.locator('.site-status-left a').innerText()
     let originalRightDomain = await page.locator('.site-status-right a').innerText()
     await page.keyboard.press('ArrowLeft')
-    let undoButton = page.getByRole('button', { name: 'Undo [u]' })
+    let undoButton = page.getByRole('button', { name: 'Undo', exact: true })
     await undoButton.waitFor()
+    assert.equal(await undoButton.locator('kbd').innerText(), 'U')
+    assert.equal(await undoButton.locator('kbd').getAttribute('aria-hidden'), 'true')
     assert.match(await page.locator('.comparison-hint').innerText(), /Choice saved/)
     assert.match(await comparisonContext.innerText(), /1 comparison/)
     await undoButton.waitFor({ state: 'hidden' })
@@ -165,6 +219,33 @@ describe('saved collection navigation', () => {
     await page.locator('[data-comparison]').waitFor()
     await page.keyboard.press('ArrowLeft')
     await page.getByText('Choice saved', { exact: true }).waitFor()
+
+    await page.goto(rankingUrl)
+    await page.locator('.ranking-table').waitFor()
+    assert.equal(
+      await page.getByRole('columnheader', { name: 'Position' }).evaluate(
+        (element) => getComputedStyle(element).textAlign,
+      ),
+      'right',
+    )
+    assert.equal(
+      await page.getByRole('columnheader', { name: 'Score' }).evaluate(
+        (element) => getComputedStyle(element).textAlign,
+      ),
+      'right',
+    )
+    assert.equal(
+      await page.getByRole('columnheader', { name: 'Comparisons' }).evaluate(
+        (element) => getComputedStyle(element).textAlign,
+      ),
+      'right',
+    )
+    for (let cell of await page.locator('.numeric-cell').all()) {
+      assert.equal(await cell.evaluate((element) => getComputedStyle(element).textAlign), 'right')
+    }
+    for (let cell of await page.locator('.rank-position').all()) {
+      assert.equal(await cell.evaluate((element) => getComputedStyle(element).textAlign), 'right')
+    }
 
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto(rankingUrl)
@@ -250,6 +331,46 @@ describe('saved collection navigation', () => {
       await page.locator('.home-main').evaluate((element) => element.getBoundingClientRect().width),
       296,
     )
+    let preview = page.locator('.home-preview')
+    assert.equal(await preview.evaluate((element) => getComputedStyle(element).boxShadow), 'none')
+    assert.equal(
+      await page.locator('.home-preview-left').evaluate(
+        (element) => getComputedStyle(element).backgroundColor,
+      ),
+      'rgb(198, 104, 69)',
+    )
+    assert.equal(
+      await page.locator('.home-preview-right').evaluate(
+        (element) => getComputedStyle(element).backgroundColor,
+      ),
+      'rgb(49, 90, 103)',
+    )
+
+    let slider = page.getByRole('slider', { name: 'Preview the site comparison divider' })
+    await slider.click()
+    assert.equal(await slider.evaluate((element) => document.activeElement === element), true)
+    assert.equal(await slider.getAttribute('data-pointer-focus'), '')
+    assert.equal(
+      await slider.locator('.divider-handle').evaluate(
+        (element) => getComputedStyle(element).boxShadow,
+      ),
+      'none',
+    )
+    let homepageLink = page.getByRole('link', { name: 'Homepage' })
+    await homepageLink.focus()
+    assert.equal(await slider.getAttribute('data-pointer-focus'), null)
+    await page.keyboard.press('Tab')
+    assert.equal(await slider.evaluate((element) => document.activeElement === element), true)
+    assert.equal(await slider.evaluate((element) => element.matches(':focus-visible')), true)
+    assert.notEqual(
+      await slider.locator('.divider-handle').evaluate(
+        (element) => getComputedStyle(element).boxShadow,
+      ),
+      'none',
+    )
+    assert.equal(await slider.getAttribute('aria-valuenow'), '50')
+    await page.keyboard.press('ArrowRight')
+    assert.equal(await slider.getAttribute('aria-valuenow'), '55')
   })
 
   it('exports and restores the complete browser library', { timeout: 15_000 }, async (t) => {
@@ -283,6 +404,28 @@ describe('saved collection navigation', () => {
       await folderChevron.evaluate((element) => getComputedStyle(element).pointerEvents),
       'none',
     )
+    let compareFolder = page.getByRole('button', { name: 'Compare folder' })
+    let startComparing = page.getByRole('button', { name: 'Start comparing' })
+    let openDemo = page.getByRole('button', { name: 'Open demo' })
+    await page.mouse.move(0, 0)
+    assert.match(await compareFolder.getAttribute('class') ?? '', /home-control-secondary/)
+    assert.equal(
+      await compareFolder.evaluate((element) => getComputedStyle(element).backgroundColor),
+      'rgb(255, 255, 255)',
+    )
+    assert.equal(
+      await compareFolder.evaluate((element) => getComputedStyle(element).color),
+      'rgb(23, 23, 23)',
+    )
+    assert.equal(
+      await startComparing.evaluate((element) => getComputedStyle(element).backgroundColor),
+      'rgb(23, 23, 23)',
+    )
+    assert.equal(
+      await openDemo.evaluate((element) => getComputedStyle(element).backgroundColor),
+      'rgba(0, 0, 0, 0)',
+    )
+    assert.equal(await page.locator('.home-control:not(.home-control-secondary):not(.home-demo-control)').count(), 1)
     await page.getByLabel('Links').fill('https://first.test\nhttps://second.test')
     await page.getByRole('button', { name: 'Start comparing' }).click()
     await page.waitForURL(/\/collections\/[^/]+\/compare$/)
