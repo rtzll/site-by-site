@@ -23,6 +23,7 @@ describe('saved collection navigation', () => {
       await page.locator('body').evaluate((element) => getComputedStyle(element).colorScheme),
       'light',
     )
+    assert.equal(await page.locator('.home-shell .app-header').count(), 0)
     let startButton = page.getByRole('button', { name: 'Start comparing' })
     await page.waitForFunction(() => {
       let button = document.querySelector<HTMLButtonElement>('.home-submit')
@@ -336,6 +337,10 @@ describe('saved collection navigation', () => {
     assert.equal(
       await page.locator('.home-main').evaluate((element) => element.getBoundingClientRect().width),
       296,
+    )
+    assert.equal(
+      await homeHeading.evaluate((element) => element.getBoundingClientRect().top),
+      40,
     )
     let preview = page.locator('.home-preview')
     assert.equal(await preview.evaluate((element) => getComputedStyle(element).boxShadow), 'none')

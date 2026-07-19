@@ -63,9 +63,7 @@ h1 { max-width: 18ch; font-size: clamp(2.6rem, 7vw, 5.75rem); font-weight: 500; 
 h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 
 .home-shell { min-height: 100dvh; background: var(--canvas); color: var(--ink); color-scheme: light; --home-type: .875rem; }
-.home-shell .app-header { width: min(100% - 2rem, 38rem); padding-block: 1rem; border-color: var(--line); }
-.home-shell .wordmark { color: var(--ink); font-size: var(--home-type); font-weight: 500; letter-spacing: 0; }
-.home-main { width: min(100% - 2rem, 38rem); margin-inline: auto; padding-block: clamp(3rem, 10vh, 6rem) 4rem; }
+.home-main { width: min(100% - 2rem, 38rem); margin-inline: auto; padding-block: clamp(2.5rem, 8vh, 5rem) 4rem; }
 .home-entry { display: grid; gap: 1rem; }
 .home-heading { max-width: 40ch; font-size: var(--home-type); font-weight: 600; letter-spacing: 0; line-height: normal; text-wrap: balance; }
 .home-preview { position: relative; height: clamp(11rem, 35vw, 14rem); overflow: hidden; container: home-preview / inline-size; border: 1px solid var(--line); border-radius: var(--radius-media); background: #315a67; isolation: isolate; --divider: 50%; }
@@ -303,7 +301,7 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 @media (max-width: 48rem) {
   .app-header { align-items: center; }
   .home-shell { --home-type: 1rem; }
-  .home-shell .app-header, .home-main { width: min(100% - 1.5rem, 38rem); }
+  .home-main { width: min(100% - 1.5rem, 38rem); }
   .home-main { padding-block: 2.5rem 3rem; }
   .workspace-shell { --workspace-type: 1rem; }
   .workspace-shell .app-header, .workspace-main { width: min(100% - 1.5rem, 38rem); }

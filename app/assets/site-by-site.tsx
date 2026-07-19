@@ -713,7 +713,6 @@ export const SiteBySiteApp = clientEntry(
     function renderHome() {
       return (
         <div class="app-shell home-shell">
-          <AppHeader />
           <main class="home-main isolate">
             <section class="home-entry" aria-labelledby="home-heading">
               <h1 class="home-heading" id="home-heading">

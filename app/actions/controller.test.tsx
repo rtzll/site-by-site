@@ -20,6 +20,7 @@ describe('local-first application routes', () => {
       html,
       /Each choice builds a ranking stored only in this browser\./,
     )
+    assert.doesNotMatch(html, /class="app-header"/)
     assert.doesNotMatch(html, /—/)
     assert.match(html, /data-home-divider/)
     assert.match(html, /Drag the divider to inspect both sites/)
