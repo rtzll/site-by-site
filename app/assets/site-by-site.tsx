@@ -61,6 +61,9 @@ export const SiteBySiteApp = clientEntry(
     let draggingHomeDivider = false
     let homeFeedbackChoice: Exclude<VoteChoice, 'skip'> | null = null
     let homeFeedbackVersion = 0
+    let homeSidesSwapped = false
+    let homeSwapAcknowledgement = false
+    let homeSwapAcknowledgementVersion = 0
     let dividerPercent = 50
     let savedDividerPercent = 50
     let draggingDivider = false
@@ -217,7 +220,9 @@ export const SiteBySiteApp = clientEntry(
           event.altKey ||
           event.repeat ||
           (event.target instanceof Element &&
-            event.target.closest('a, button, input, select, textarea, [contenteditable="true"]'))
+            event.target.closest(
+              'a, button, input, select, summary, textarea, [contenteditable="true"]',
+            ))
         ) return
 
         if (event.key === 'ArrowLeft') {
@@ -227,6 +232,10 @@ export const SiteBySiteApp = clientEntry(
         if (event.key === 'ArrowRight') {
           event.preventDefault()
           void showHomeChoiceFeedback('right')
+        }
+        if (event.key.toLowerCase() === 's') {
+          event.preventDefault()
+          void swapHomeSides()
         }
       }
 
@@ -243,6 +252,20 @@ export const SiteBySiteApp = clientEntry(
       await delay(homeFeedbackDuration)
       if (homeFeedbackVersion !== version || handle.signal.aborted) return
       homeFeedbackChoice = null
+      await handle.update()
+    }
+
+    async function swapHomeSides() {
+      homeSidesSwapped = !homeSidesSwapped
+      homeSwapAcknowledgement = true
+      let version = ++homeSwapAcknowledgementVersion
+      homeFeedbackChoice = null
+      homeFeedbackVersion += 1
+      setHomeDivider(50)
+      await handle.update()
+      await delay(1_000)
+      if (homeSwapAcknowledgementVersion !== version || handle.signal.aborted) return
+      homeSwapAcknowledgement = false
       await handle.update()
     }
 
@@ -703,7 +726,9 @@ export const SiteBySiteApp = clientEntry(
                 data-home-comparison
               >
                 <div class="home-preview-scenes" aria-hidden="true">
-                  <div class="home-preview-side home-preview-left">
+                  <div
+                    class={`home-preview-side home-preview-left ${homeSidesSwapped ? 'home-preview-visible-right' : 'home-preview-visible-left'}`}
+                  >
                     <div class="home-preview-page home-preview-page-left">
                       <p class="home-preview-site-eyebrow">Edition 04</p>
                       <strong class="home-preview-site-title">Objects for<br />quiet rooms.</strong>
@@ -716,7 +741,9 @@ export const SiteBySiteApp = clientEntry(
                       <p class="home-preview-site-meta">Made slowly in Berlin.</p>
                     </div>
                   </div>
-                  <div class="home-preview-side home-preview-right">
+                  <div
+                    class={`home-preview-side home-preview-right ${homeSidesSwapped ? 'home-preview-visible-left' : 'home-preview-visible-right'}`}
+                  >
                     <div class="home-preview-page home-preview-page-right">
                       <p class="home-preview-site-eyebrow">Field note 12</p>
                       <strong class="home-preview-site-title">Ideas for<br />loud places.</strong>
@@ -730,21 +757,29 @@ export const SiteBySiteApp = clientEntry(
                     </div>
                   </div>
                   <div class="home-preview-status home-preview-status-left">
-                    <span class="home-preview-status-domain">studio.test</span>
+                    <span class="home-preview-status-domain">
+                      {homeSidesSwapped ? 'fieldnotes.test' : 'studio.test'}
+                    </span>
                     <span class="home-preview-status-action">
                       <span class="home-preview-status-action-label">Didn’t load?</span>
                       <kbd class="home-preview-key">Z</kbd>
                     </span>
                   </div>
                   <div class="home-preview-status home-preview-status-right">
-                    <span class="home-preview-status-domain">fieldnotes.test</span>
+                    <span class="home-preview-status-domain">
+                      {homeSidesSwapped ? 'studio.test' : 'fieldnotes.test'}
+                    </span>
                     <span class="home-preview-status-action">
                       <span class="home-preview-status-action-label">Didn’t load?</span>
                       <kbd class="home-preview-key">X</kbd>
                     </span>
                   </div>
                   <div class="home-preview-dock">
-                    <p>Drag the divider to inspect both sites</p>
+                    <p>
+                      {homeSwapAcknowledgement
+                        ? 'Sides switched'
+                        : 'Drag the divider to inspect both sites'}
+                    </p>
                     <div class="home-preview-actions">
                       <span>Left <kbd class="home-preview-key">←</kbd></span>
                       <span>Swap <kbd class="home-preview-key">S</kbd></span>

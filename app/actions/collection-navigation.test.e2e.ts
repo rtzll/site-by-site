@@ -467,6 +467,64 @@ describe('saved collection navigation', () => {
     await preview.locator('.vote-feedback.is-visible').waitFor({ state: 'hidden' })
     await page.keyboard.press('ArrowLeft')
     await preview.locator('.vote-feedback.is-visible.feedback-left').waitFor()
+    await preview.locator('.vote-feedback.is-visible').waitFor({ state: 'hidden' })
+
+    await page.keyboard.press('s')
+    await page.getByText('Sides switched', { exact: true }).waitFor({ timeout: 3_000 })
+    let swappedPreview = await preview.evaluate((element) => ({
+      percent: Number.parseFloat(element.style.getPropertyValue('--divider')),
+      leftSiteClip: getComputedStyle(
+        element.querySelector<HTMLElement>('.home-preview-left')!,
+      ).clipPath,
+      rightSiteClip: getComputedStyle(
+        element.querySelector<HTMLElement>('.home-preview-right')!,
+      ).clipPath,
+      leftDomain: element.querySelector('.home-preview-status-left .home-preview-status-domain')
+        ?.textContent?.trim(),
+      rightDomain: element.querySelector('.home-preview-status-right .home-preview-status-domain')
+        ?.textContent?.trim(),
+    }))
+    assert.equal(swappedPreview.percent, 50)
+    assert.equal(swappedPreview.leftSiteClip, initialClipPaths.right)
+    assert.equal(swappedPreview.rightSiteClip, initialClipPaths.left)
+    assert.equal(swappedPreview.leftDomain, 'fieldnotes.test')
+    assert.equal(swappedPreview.rightDomain, 'studio.test')
+
+    await page.getByLabel('Links').focus()
+    await page.keyboard.press('s')
+    assert.equal(
+      await preview.locator('.home-preview-status-left .home-preview-status-domain').innerText(),
+      'fieldnotes.test',
+    )
+
+    await preview.focus()
+    await page.keyboard.press('s')
+    let restoredPreview = await preview.evaluate((element) => ({
+      leftSiteClip: getComputedStyle(
+        element.querySelector<HTMLElement>('.home-preview-left')!,
+      ).clipPath,
+      rightSiteClip: getComputedStyle(
+        element.querySelector<HTMLElement>('.home-preview-right')!,
+      ).clipPath,
+      leftDomain: element.querySelector('.home-preview-status-left .home-preview-status-domain')
+        ?.textContent?.trim(),
+      rightDomain: element.querySelector('.home-preview-status-right .home-preview-status-domain')
+        ?.textContent?.trim(),
+    }))
+    assert.equal(restoredPreview.leftSiteClip, initialClipPaths.left)
+    assert.equal(restoredPreview.rightSiteClip, initialClipPaths.right)
+    assert.equal(restoredPreview.leftDomain, 'studio.test')
+    assert.equal(restoredPreview.rightDomain, 'fieldnotes.test')
+    await page
+      .getByText('Drag the divider to inspect both sites', { exact: true })
+      .waitFor({ timeout: 3_000 })
+
+    await page.getByRole('button', { name: 'Open demo' }).focus()
+    await page.keyboard.press('s')
+    assert.equal(
+      await preview.locator('.home-preview-status-left .home-preview-status-domain').innerText(),
+      'studio.test',
+    )
   })
 
   it('exports and restores the complete browser library', { timeout: 15_000 }, async (t) => {

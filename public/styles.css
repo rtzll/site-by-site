@@ -72,8 +72,10 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 .home-preview-scenes, .home-preview-side, .home-preview-page { position: absolute; inset: 0; }
 .home-preview-scenes { pointer-events: none; }
 .home-preview-side { color: white; }
-.home-preview-left { clip-path: inset(0 calc(100% - var(--divider)) 0 0); background: #c66845; }
-.home-preview-right { clip-path: inset(0 0 0 var(--divider)); background: #315a67; text-align: right; }
+.home-preview-left { background: #c66845; }
+.home-preview-right { background: #315a67; text-align: right; }
+.home-preview-visible-left { clip-path: inset(0 calc(100% - var(--divider)) 0 0); }
+.home-preview-visible-right { clip-path: inset(0 0 0 var(--divider)); }
 .home-preview-page { overflow: hidden; }
 .home-preview-site-eyebrow { position: absolute; top: 1rem; left: 1rem; color: rgb(255 255 255 / 68%); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .5625rem; letter-spacing: .08em; text-transform: uppercase; }
 .home-preview-page-right .home-preview-site-eyebrow { right: 1rem; left: auto; }
