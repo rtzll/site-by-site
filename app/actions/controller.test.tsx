@@ -46,6 +46,7 @@ describe('local-first application routes', () => {
       assert.equal(response.status, 200)
       let html = await response.text()
       assert.match(html, new RegExp(collectionId))
+      assert.doesNotMatch(html, /class="app-header"/)
       assert.doesNotMatch(html, /normalizedUrl|inputUrl|https:\/\/example\.com/)
     }
   })

@@ -23,7 +23,7 @@ describe('saved collection navigation', () => {
       await page.locator('body').evaluate((element) => getComputedStyle(element).colorScheme),
       'light',
     )
-    assert.equal(await page.locator('.home-shell .app-header').count(), 0)
+    assert.equal(await page.locator('.app-header').count(), 0)
     let startButton = page.getByRole('button', { name: 'Start comparing' })
     await page.waitForFunction(() => {
       let button = document.querySelector<HTMLButtonElement>('.home-submit')
@@ -52,12 +52,20 @@ describe('saved collection navigation', () => {
     assert.equal(await collectionLink.getAttribute('rmx-document'), '')
     await collectionLink.click()
     await page.getByRole('heading', { name: 'Untitled collection' }).waitFor()
+    assert.equal(await page.locator('.app-header, .header-menu').count(), 0)
+    let collectionBreadcrumb = page.getByRole('navigation', { name: 'Breadcrumb' })
+    let libraryLink = collectionBreadcrumb.getByRole('link', { name: /Library/ })
+    assert.equal(await libraryLink.getAttribute('href'), '/')
+    assert.equal(await libraryLink.getAttribute('rmx-document'), '')
+    let collectionRankingLink = page.getByRole('link', { name: 'Ranking' })
+    assert.match(await collectionRankingLink.getAttribute('href') ?? '', /\/ranking$/)
+    assert.equal(await collectionRankingLink.getAttribute('rmx-document'), '')
     assert.equal(
-      await page.locator('.header-menu').evaluate((element) => getComputedStyle(element).display),
-      'none',
+      await collectionRankingLink.evaluate(
+        (element) => getComputedStyle(element).backgroundColor,
+      ),
+      'rgb(255, 255, 255)',
     )
-    assert.equal(await page.getByRole('link', { name: 'Collection' }).getAttribute('aria-current'), 'page')
-    assert.equal(await page.getByRole('link', { name: 'Ranking' }).getAttribute('aria-current'), null)
     assert.equal(
       await page.locator('.workspace-controls').evaluate((element) => getComputedStyle(element).backgroundColor),
       'rgba(0, 0, 0, 0)',
@@ -75,14 +83,16 @@ describe('saved collection navigation', () => {
     assert.doesNotMatch(pageText, /Collection not found/)
 
     let collectionUrl = page.url()
+    let collectionPath = new URL(collectionUrl).pathname
+    let rankingPath = `${collectionPath}/ranking`
     let desktopMainWidth = await page.locator('.workspace-main').evaluate(
       (element) => element.getBoundingClientRect().width,
     )
-    let desktopHeaderWidth = await page.locator('.workspace-shell .app-header').evaluate(
+    let desktopPageHeaderWidth = await page.locator('.workspace-page-header').evaluate(
       (element) => element.getBoundingClientRect().width,
     )
     assert.ok(desktopMainWidth <= 608)
-    assert.equal(desktopHeaderWidth, desktopMainWidth)
+    assert.equal(desktopPageHeaderWidth, desktopMainWidth)
     assert.equal(
       await page.locator('.workspace-stats dt').first().evaluate(
         (element) => getComputedStyle(element).color,
@@ -179,6 +189,12 @@ describe('saved collection navigation', () => {
 
     await page.locator('.site-status-left button').click()
     await page.getByRole('heading', { name: 'Two available sites are needed' }).waitFor()
+    let emptyViewCollection = page.getByRole('link', { name: 'View collection' })
+    let emptyViewRanking = page.getByRole('link', { name: 'View ranking' })
+    assert.equal(await emptyViewCollection.getAttribute('href'), collectionPath)
+    assert.equal(await emptyViewCollection.getAttribute('rmx-document'), '')
+    assert.equal(await emptyViewRanking.getAttribute('href'), rankingPath)
+    assert.equal(await emptyViewRanking.getAttribute('rmx-document'), '')
     let emptyStateUndo = page.getByRole('button', { name: 'Undo last action' })
     await emptyStateUndo.waitFor()
     await emptyStateUndo.click()
@@ -191,7 +207,16 @@ describe('saved collection navigation', () => {
     await page.getByRole('heading', { name: 'Comparison needs a wider window' }).waitFor()
     assert.equal(await page.locator('[data-comparison]').count(), 0)
     assert.equal(await page.locator('iframe').count(), 0)
+    assert.equal(await page.locator('.app-header').count(), 0)
     assert.match(await page.locator('.comparison-width-state').innerText(), /at least 640 pixels wide/)
+    assert.equal(
+      await page.getByRole('link', { name: 'View collection' }).getAttribute('href'),
+      collectionPath,
+    )
+    assert.equal(
+      await page.getByRole('link', { name: 'View ranking' }).getAttribute('href'),
+      rankingPath,
+    )
     await page.setViewportSize({ width: 640, height: 844 })
     await page.locator('[data-comparison]').waitFor()
 
@@ -203,22 +228,40 @@ describe('saved collection navigation', () => {
     )
     assert.equal(mobileMainWidth, 366)
     assert.match(await page.locator('.workspace-stats').innerText(), /Comparisons\s+0/)
-
-    let mobileMenu = page.locator('.header-menu summary')
+    assert.equal(await page.locator('.app-header, .header-menu').count(), 0)
+    let mobileLibraryLink = page.getByRole('navigation', { name: 'Breadcrumb' })
+      .getByRole('link', { name: /Library/ })
     assert.equal(
-      await mobileMenu.evaluate((element) => element.getBoundingClientRect().height),
+      await mobileLibraryLink.evaluate((element) => element.getBoundingClientRect().height),
       48,
     )
-    await mobileMenu.click()
     let rankingLink = page.getByRole('link', { name: 'Ranking' })
+    assert.equal(
+      await rankingLink.evaluate((element) => element.getBoundingClientRect().height),
+      48,
+    )
+    await page.setViewportSize({ width: 320, height: 700 })
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+      await page.evaluate(() => window.innerWidth),
+    )
+    assert.equal(
+      await page.locator('.workspace-main').evaluate((element) => element.getBoundingClientRect().width),
+      296,
+    )
     assert.equal(await rankingLink.getAttribute('rmx-document'), '')
     await rankingLink.click()
     let rankingUrl = page.url()
+    await page.getByRole('heading', { name: 'Ranking', exact: true }).waitFor()
     await page.getByRole('heading', { name: 'No ranking yet' }).waitFor()
     assert.equal(await page.locator('.ranking-table').count(), 0)
-    await page.locator('.header-menu summary').click()
-    assert.equal(await page.getByRole('link', { name: 'Collection' }).getAttribute('aria-current'), null)
-    assert.equal(await page.getByRole('link', { name: 'Ranking' }).getAttribute('aria-current'), 'page')
+    let rankingBreadcrumb = page.getByRole('navigation', { name: 'Breadcrumb' })
+    assert.match(await rankingBreadcrumb.innerText(), /Library\s*\/\s*Untitled collection/)
+    let rankingCollectionLink = rankingBreadcrumb.getByRole('link', {
+      name: 'Untitled collection',
+    })
+    assert.equal(await rankingCollectionLink.getAttribute('href'), collectionPath)
+    assert.equal(await rankingCollectionLink.getAttribute('rmx-document'), '')
     let firstComparisonLink = page.getByRole('link', { name: 'Start comparing' })
     assert.equal(await firstComparisonLink.getAttribute('rmx-document'), '')
     await page.setViewportSize({ width: 640, height: 844 })
@@ -269,6 +312,24 @@ describe('saved collection navigation', () => {
       (element) => element.getBoundingClientRect().width,
     )
     assert.equal(rankingWidth, mobileMainWidth)
+  })
+
+  it('keeps missing collection states navigable without global chrome', { timeout: 15_000 }, async (t) => {
+    let server = await createTestServer(createAppRouter().fetch)
+    let page = await t.serve(server)
+
+    for (let path of [
+      '/collections/missing-local-collection',
+      '/collections/missing-local-collection/ranking',
+      '/collections/missing-local-collection/compare',
+    ]) {
+      await page.goto(path)
+      await page.getByRole('heading', { name: 'Collection not found' }).waitFor()
+      assert.equal(await page.locator('.app-header, .header-menu').count(), 0)
+      let returnHome = page.getByRole('link', { name: 'Return home' })
+      assert.equal(await returnHome.getAttribute('href'), '/')
+      assert.equal(await returnHome.getAttribute('rmx-document'), '')
+    }
   })
 
   it('starts and reopens the bundled demo collection', { timeout: 15_000 }, async (t) => {

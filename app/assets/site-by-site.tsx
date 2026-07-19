@@ -19,7 +19,6 @@ import {
 } from '../data/local-library.ts'
 import { routes } from '../routes.ts'
 import { orientPair, translateVisibleChoice } from '../services/pair-orientation.ts'
-import { AppHeader } from '../ui/app-header.tsx'
 import { parseBookmarkHtml, type BookmarkFolder } from '../utils/bookmarks.ts'
 import { extractUrls } from '../utils/urls.ts'
 
@@ -1022,21 +1021,32 @@ export const SiteBySiteApp = clientEntry(
     function renderCollection() {
       return (
         <div class="app-shell workspace-shell">
-          <AppHeader collectionId={collection?.id} currentPage="collection" />
           <main class="workspace-main isolate">
             {loading ? <LoadingPage /> : !collection ? <MissingCollection /> : (
               <>
-                <div class="workspace-heading">
-                  <h1>{collection.name}</h1>
-                  <div class="workspace-controls" aria-label="Collection actions">
-                    <a
-                      href={routes.collections.compare.href({ collectionId: collection.id })}
-                      rmx-document=""
-                    >
-                      Compare
-                    </a>
+                <header class="workspace-page-header">
+                  <nav class="workspace-context" aria-label="Breadcrumb">
+                    <a href={routes.home.href()} rmx-document="">← Library</a>
+                  </nav>
+                  <div class="workspace-heading">
+                    <h1>{collection.name}</h1>
+                    <div class="workspace-controls" aria-label="Collection actions">
+                      <a
+                        class="workspace-control-secondary"
+                        href={routes.collections.ranking.href({ collectionId: collection.id })}
+                        rmx-document=""
+                      >
+                        Ranking
+                      </a>
+                      <a
+                        href={routes.collections.compare.href({ collectionId: collection.id })}
+                        rmx-document=""
+                      >
+                        Compare
+                      </a>
+                    </div>
                   </div>
-                </div>
+                </header>
                 {error ? <p class="workspace-error" role="alert">{error}</p> : null}
                 <div class="workspace-stats-container">
                   <dl class="workspace-stats">
@@ -1086,23 +1096,34 @@ export const SiteBySiteApp = clientEntry(
     function renderRanking() {
       return (
         <div class="app-shell workspace-shell">
-          <AppHeader collectionId={collection?.id} currentPage="ranking" />
           <main class="workspace-main isolate">
             {loading ? <LoadingPage /> : !collection ? <MissingCollection /> : (
               <>
-                <div class="workspace-heading">
-                  <h1>{collection.name}</h1>
-                  {collection.comparisonCount > 0 ? (
-                    <div class="workspace-controls" aria-label="Ranking actions">
-                      <a
-                        href={routes.collections.compare.href({ collectionId: collection.id })}
-                        rmx-document=""
-                      >
-                        Compare
-                      </a>
-                    </div>
-                  ) : null}
-                </div>
+                <header class="workspace-page-header">
+                  <nav class="workspace-context" aria-label="Breadcrumb">
+                    <a href={routes.home.href()} rmx-document="">Library</a>
+                    <span aria-hidden="true">/</span>
+                    <a
+                      href={routes.collections.show.href({ collectionId: collection.id })}
+                      rmx-document=""
+                    >
+                      {collection.name}
+                    </a>
+                  </nav>
+                  <div class="workspace-heading">
+                    <h1>Ranking</h1>
+                    {collection.comparisonCount > 0 ? (
+                      <div class="workspace-controls" aria-label="Ranking actions">
+                        <a
+                          href={routes.collections.compare.href({ collectionId: collection.id })}
+                          rmx-document=""
+                        >
+                          Compare
+                        </a>
+                      </div>
+                    ) : null}
+                  </div>
+                </header>
                 {collection.comparisonCount === 0 ? (
                   <div class="workspace-state ranking-empty-state">
                     <h2>No ranking yet</h2>
@@ -1161,10 +1182,9 @@ export const SiteBySiteApp = clientEntry(
       )
     }
 
-    function renderComparisonState(content: RemixNode, collectionId?: string) {
+    function renderComparisonState(content: RemixNode) {
       return (
         <div class="app-shell workspace-shell">
-          <AppHeader collectionId={collectionId} />
           <main class="workspace-main isolate">{content}</main>
         </div>
       )
@@ -1219,7 +1239,6 @@ export const SiteBySiteApp = clientEntry(
               </a>
             </div>
           </div>,
-          collection.id,
         )
       }
       if (!pair) {
@@ -1254,9 +1273,15 @@ export const SiteBySiteApp = clientEntry(
               >
                 View collection
               </a>
+              <a
+                class="workspace-state-link"
+                href={routes.collections.ranking.href({ collectionId: collection.id })}
+                rmx-document=""
+              >
+                View ranking
+              </a>
             </div>
           </div>,
-          collection.id,
         )
       }
 

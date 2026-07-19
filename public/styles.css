@@ -21,7 +21,6 @@
   --divider: 50%;
   --radius-compact: .25rem;
   --radius-control: .375rem;
-  --radius-control-inner: calc(var(--radius-control) - 1px);
   --radius-panel: .375rem;
   --radius-media: min(1vw, .5rem);
   --radius-floating: .75rem;
@@ -41,21 +40,6 @@ a { color: inherit; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 .app-shell { min-height: 100dvh; }
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  width: min(100% - 2rem, 72rem);
-  margin-inline: auto;
-  padding-block: 1.25rem;
-  border-bottom: 1px solid var(--line);
-}
-.wordmark { position: relative; font-size: .875rem; font-weight: 600; letter-spacing: -.02em; text-decoration: none; }
-.header-actions { display: flex; min-width: 0; flex-shrink: 0; gap: 1.25rem; white-space: nowrap; }
-.header-actions a { position: relative; color: var(--muted); font-size: .8125rem; text-decoration: none; }
-.header-actions a:hover { color: var(--ink); }
-.header-menu { position: relative; display: none; }
 
 .eyebrow { margin: 0; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; }
 h1, h2, p { margin-block: 0; }
@@ -174,26 +158,24 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 .home-backup-message[role="alert"] { color: var(--accent-dark); }
 
 .workspace-shell { min-height: 100dvh; background: var(--canvas); color: var(--ink); color-scheme: light; --workspace-type: .875rem; }
-.workspace-shell .app-header { width: min(100% - 2rem, 38rem); border-color: var(--line); }
-.workspace-shell .wordmark { color: var(--ink); font-weight: 500; letter-spacing: 0; }
-.workspace-shell .header-actions { gap: 0; border: 1px solid var(--line); border-radius: var(--radius-control); background: var(--panel); }
-.workspace-shell .header-actions a { display: inline-flex; min-height: 2.15rem; align-items: center; padding: .4rem .6rem; color: var(--muted); font-size: var(--workspace-type); }
-.workspace-shell .header-actions a + a { border-left: 1px solid var(--line); }
-.workspace-shell .header-actions a:first-child { border-radius: var(--radius-control-inner) 0 0 var(--radius-control-inner); }
-.workspace-shell .header-actions a:last-child { border-radius: 0 var(--radius-control-inner) var(--radius-control-inner) 0; }
-.workspace-shell .header-actions a:hover { background: var(--well); color: var(--ink); }
-.workspace-shell .header-actions a[aria-current="page"] { background: var(--well); color: var(--ink); }
-.workspace-shell .header-actions a:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
 .workspace-main { width: min(100% - 2rem, 38rem); margin-inline: auto; padding-block: clamp(2.5rem, 7vw, 5rem); }
-.workspace-heading { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 1rem; padding-bottom: 1rem; }
-.workspace-heading h1 { min-width: 0; overflow: hidden; color: var(--ink); font-size: 1rem; font-weight: 500; letter-spacing: 0; line-height: normal; text-overflow: ellipsis; white-space: nowrap; }
-.workspace-controls { display: flex; flex-shrink: 0; }
+.workspace-page-header { display: grid; gap: 1rem; padding-bottom: 1rem; }
+.workspace-context { display: flex; min-width: 0; align-items: center; gap: .45rem; color: var(--muted); font-size: var(--workspace-type); line-height: 1.25rem; }
+.workspace-context a { position: relative; display: inline-flex; min-width: 0; min-height: 2rem; align-items: center; color: inherit; text-decoration: none; }
+.workspace-context a:first-child { flex-shrink: 0; }
+.workspace-context a:last-child:not(:first-child) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.workspace-context a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: .18rem; }
+.workspace-context a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.workspace-context span { flex-shrink: 0; color: var(--faint); }
+.workspace-heading { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 1rem; }
+.workspace-heading h1 { min-width: 0; max-width: none; overflow: hidden; color: var(--ink); font-size: 1rem; font-weight: 500; letter-spacing: 0; line-height: normal; text-overflow: ellipsis; white-space: nowrap; }
+.workspace-controls { display: flex; flex-shrink: 0; flex-wrap: wrap; gap: .5rem; }
 .workspace-controls a, .workspace-controls button, .workspace-control { display: inline-flex; min-height: 2.25rem; align-items: center; justify-content: center; border: 1px solid var(--control-border); border-radius: var(--radius-panel); padding: .45rem .7rem; background: var(--control-bg); color: white; cursor: pointer; font-size: var(--workspace-type, .875rem); line-height: 1rem; text-decoration: none; }
 .workspace-controls a:hover, .workspace-controls button:hover, .workspace-control:hover { background: var(--control-hover); }
-.home-control-secondary, .workspace-control-secondary { border-color: var(--line-strong); background: var(--paper); color: var(--ink); }
-.home-control-secondary:hover, .workspace-control-secondary:hover { background: var(--well); }
+.home-control-secondary, .workspace-control-secondary, .workspace-controls .workspace-control-secondary { border-color: var(--line-strong); background: var(--paper); color: var(--ink); }
+.home-control-secondary:hover, .workspace-control-secondary:hover, .workspace-controls .workspace-control-secondary:hover { background: var(--well); }
 .workspace-controls a:focus-visible, .workspace-controls button:focus-visible, .workspace-control:focus-visible { outline: 2px solid white; outline-offset: -2px; }
-.home-control-secondary:focus-visible, .workspace-control-secondary:focus-visible { outline-color: var(--ink); outline-offset: -2px; }
+.home-control-secondary:focus-visible, .workspace-control-secondary:focus-visible, .workspace-controls .workspace-control-secondary:focus-visible { outline-color: var(--ink); outline-offset: -2px; }
 .workspace-settings summary:focus-visible, .workspace-settings input:focus-visible, .workspace-settings textarea:focus-visible, .ranking-table a:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
 .workspace-control { width: fit-content; }
 .workspace-control:disabled { cursor: default; opacity: .45; }
@@ -218,7 +200,7 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 .workspace-state h1, .workspace-state h2 { color: var(--ink); font-size: var(--workspace-type); font-weight: 500; letter-spacing: 0; line-height: normal; }
 .workspace-state p { color: var(--muted); font-size: var(--workspace-type); line-height: 1.5; }
 .workspace-state [role="alert"] { color: var(--accent-dark); }
-.workspace-state-actions { display: flex; align-items: center; gap: .75rem; }
+.workspace-state-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
 .workspace-state-link { color: var(--muted); font-size: var(--workspace-type); text-underline-offset: .18rem; }
 .workspace-state-link:hover { color: var(--ink); }
 .workspace-state-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
@@ -299,28 +281,13 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 48rem) {
-  .app-header { align-items: center; }
   .home-shell { --home-type: 1rem; }
   .home-main { width: min(100% - 1.5rem, 38rem); }
   .home-main { padding-block: 2.5rem 3rem; }
   .workspace-shell { --workspace-type: 1rem; }
-  .workspace-shell .app-header, .workspace-main { width: min(100% - 1.5rem, 38rem); }
+  .workspace-main { width: min(100% - 1.5rem, 38rem); }
   .workspace-main { padding-block: 2.5rem 3rem; }
-  .header-actions-desktop { display: none; }
-  .header-menu { display: block; }
-  .header-menu summary { display: flex; min-height: 3rem; cursor: pointer; list-style: none; align-items: center; gap: .65rem; border: 1px solid var(--line-strong); border-radius: var(--radius-control); padding: .55rem .7rem; background: var(--panel); color: var(--ink); font-size: var(--workspace-type); }
-  .header-menu summary::-webkit-details-marker { display: none; }
-  .header-menu summary [aria-hidden="true"] { color: var(--muted); }
-  .header-menu-indicator-open { display: none; }
-  .header-menu[open] .header-menu-indicator-closed { display: none; }
-  .header-menu[open] .header-menu-indicator-open { display: inline; }
-  .header-menu summary:hover, .header-menu[open] summary { background: var(--paper); }
-  .header-menu summary:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
-  .header-menu nav { position: absolute; z-index: 20; top: calc(100% + .35rem); right: 0; display: grid; min-width: 10rem; overflow: hidden; border: 1px solid var(--line-strong); border-radius: var(--radius-floating); background: var(--paper); box-shadow: 0 .75rem 2rem rgb(0 0 0 / 10%); }
-  .header-menu nav a { display: flex; min-height: 3rem; align-items: center; padding: .6rem .75rem; border-top: 1px solid var(--line); color: var(--muted); font-size: var(--workspace-type); text-decoration: none; }
-  .header-menu nav a:first-child { border-top: 0; }
-  .header-menu nav a:hover, .header-menu nav a[aria-current="page"] { background: var(--well); color: var(--ink); }
-  .header-menu nav a:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+  .workspace-context a, .workspace-controls a, .workspace-controls button { min-height: 3rem; }
   .table-scroll { margin-inline: -.75rem; padding-inline: .75rem; }
   .comparison-dock { bottom: .75rem; }
   .site-status { bottom: 5.25rem; max-width: calc(50vw - 1rem); }
@@ -344,9 +311,9 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
 }
 
 @media (pointer: coarse) {
-  .wordmark::after, .header-actions a::after { position: absolute; top: 50%; left: 50%; width: max(100%, 3rem); height: 3rem; content: ""; transform: translate(-50%, -50%); }
   .home-control, .home-folder-controls select, .home-library-heading button, .home-backup-controls button, .home-backup-file, .home-backup-confirmation button { min-height: 3rem; }
   .home-drop-zone { min-height: 5.5rem; }
+  .workspace-context a { min-height: 3rem; }
   .workspace-controls a, .workspace-controls button, .workspace-control, .workspace-settings summary, .compact-form input { min-height: 3rem; }
   .comparison-choices button, .site-status a, .site-status button { min-height: 3rem; }
   .site-status { bottom: 6.15rem; }
