@@ -108,6 +108,8 @@ describe('saved collection navigation', () => {
     await undoButton.waitFor()
     assert.match(await page.locator('.comparison-hint').innerText(), /Choice saved/)
     assert.match(await comparisonContext.innerText(), /1 comparison/)
+    await undoButton.waitFor({ state: 'hidden' })
+    await page.getByText('Drag the divider to inspect both sites', { exact: true }).waitFor()
     await page.keyboard.press('u')
     await page.getByText('Last action undone', { exact: true }).waitFor()
     assert.match(await comparisonContext.innerText(), /0 comparisons/)
@@ -230,7 +232,16 @@ describe('saved collection navigation', () => {
 
     await page.setViewportSize({ width: 320, height: 700 })
     await page.goto('/')
-    await page.getByRole('heading', { name: 'Find the websites that inspire you most.' }).waitFor()
+    let homeHeading = page.getByRole('heading', { name: 'Compare websites side by side.' })
+    await homeHeading.waitFor()
+    assert.equal(
+      await homeHeading.evaluate((element) => getComputedStyle(element).fontSize),
+      await page.locator('.home-summary').evaluate((element) => getComputedStyle(element).fontSize),
+    )
+    assert.equal(
+      await homeHeading.evaluate((element) => getComputedStyle(element).fontWeight),
+      '600',
+    )
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth),
       await page.evaluate(() => window.innerWidth),

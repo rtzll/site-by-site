@@ -14,12 +14,13 @@ describe('local-first application routes', () => {
     let html = await response.text()
     assert.match(
       html,
-      /Find the websites that inspire you most\./,
+      /Compare websites side by side\./,
     )
     assert.match(
       html,
-      /Site by Site turns those choices into a personal ranking—stored only in this browser\./,
+      /Each choice builds a ranking stored only in this browser\./,
     )
+    assert.doesNotMatch(html, /—/)
     assert.match(html, /Preview the site comparison divider/)
     assert.match(html, /Drag to compare/)
     assert.match(html, />Demo</)

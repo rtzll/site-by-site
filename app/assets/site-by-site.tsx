@@ -40,6 +40,8 @@ type PendingAction =
   | 'restore-backup'
   | null
 
+const comparisonNoticeDuration = 4_000
+
 export const SiteBySiteApp = clientEntry(
   SiteBySiteEntryId,
   function SiteBySiteApp(handle: Handle<SiteBySiteAppProps>) {
@@ -68,6 +70,7 @@ export const SiteBySiteApp = clientEntry(
     let feedbackChoice: VoteChoice | null = null
     let undoAvailable = false
     let comparisonNotice: string | null = null
+    let comparisonNoticeVersion = 0
     let comparisonViewportSupported = true
     let pendingBackup: LocalLibraryExport | null = null
     let backupStatus: string | null = null
@@ -411,7 +414,7 @@ export const SiteBySiteApp = clientEntry(
       feedbackChoice = choice
       keyboardPaused = false
       error = null
-      comparisonNotice = null
+      clearComparisonNotice()
       await handle.update()
       try {
         await library.recordChoice({
@@ -425,7 +428,7 @@ export const SiteBySiteApp = clientEntry(
         feedbackChoice = null
         preparePair()
         undoAvailable = Boolean(collection?.canUndoLastAction)
-        comparisonNotice = choice === 'skip' ? 'Pair skipped' : 'Choice saved'
+        showComparisonNotice(choice === 'skip' ? 'Pair skipped' : 'Choice saved')
         error = null
       } catch (caught) {
         feedbackChoice = null
@@ -442,7 +445,7 @@ export const SiteBySiteApp = clientEntry(
       working = true
       pairLoading = true
       error = null
-      comparisonNotice = null
+      clearComparisonNotice()
       await handle.update()
       try {
         pair = await library.markSiteUnavailable({
@@ -453,7 +456,7 @@ export const SiteBySiteApp = clientEntry(
         collection = await library.getCollection(collection.id)
         preparePair()
         undoAvailable = Boolean(collection?.canUndoLastAction)
-        comparisonNotice = 'Site removed from comparisons'
+        showComparisonNotice('Site removed from comparisons')
         error = null
       } catch (caught) {
         pairLoading = false
@@ -469,19 +472,19 @@ export const SiteBySiteApp = clientEntry(
       if (!library || !collection || working || !undoAvailable) return
       working = true
       error = null
+      clearComparisonNotice()
       await handle.update()
       try {
         let restoredPair = await library.undoLastAction(collection.id)
         collection = await library.getCollection(collection.id)
         undoAvailable = Boolean(collection?.canUndoLastAction)
         if (!restoredPair) {
-          comparisonNotice = null
           error = 'There is no comparison action to undo.'
           return
         }
         pair = restoredPair
         preparePair()
-        comparisonNotice = 'Last action undone'
+        showComparisonNotice('Last action undone')
       } catch (caught) {
         error = messageFrom(caught, 'The last action could not be undone.')
       } finally {
@@ -489,6 +492,21 @@ export const SiteBySiteApp = clientEntry(
         await handle.update()
         if (pair) focusComparisonStage()
       }
+    }
+
+    function clearComparisonNotice() {
+      comparisonNoticeVersion += 1
+      comparisonNotice = null
+    }
+
+    function showComparisonNotice(message: string) {
+      comparisonNotice = message
+      let version = ++comparisonNoticeVersion
+      window.setTimeout(() => {
+        if (comparisonNoticeVersion !== version || handle.signal.aborted) return
+        comparisonNotice = null
+        void handle.update()
+      }, comparisonNoticeDuration)
     }
 
     function markVisibleSideUnavailable(side: 'left' | 'right') {
@@ -645,7 +663,7 @@ export const SiteBySiteApp = clientEntry(
           <main class="home-main isolate">
             <section class="home-entry" aria-labelledby="home-heading">
               <h1 class="home-heading" id="home-heading">
-                Find the websites that inspire you most.
+                Compare websites side by side.
               </h1>
               <div
                 class="home-preview"
@@ -685,8 +703,7 @@ export const SiteBySiteApp = clientEntry(
                 <p class="home-preview-hint" aria-hidden="true">Drag to compare</p>
               </div>
               <p class="home-summary">
-                Add bookmarks or paste links, compare them side by side, and choose what inspires
-                you. Site by Site turns those choices into a personal ranking—stored only in this
+                Add bookmarks or paste links. Each choice builds a ranking stored only in this
                 browser.
               </p>
 
@@ -1200,7 +1217,7 @@ export const SiteBySiteApp = clientEntry(
                       ? 'Sides switched'
                       : comparisonNotice ?? 'Drag the divider to inspect both sites'}
               </p>
-              {undoAvailable ? (
+              {undoAvailable && comparisonNotice ? (
                 <button
                   type="button"
                   disabled={working}
