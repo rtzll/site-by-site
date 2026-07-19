@@ -41,6 +41,7 @@ type PendingAction =
   | null
 
 const comparisonNoticeDuration = 4_000
+const homeFeedbackDuration = 240
 
 export const SiteBySiteApp = clientEntry(
   SiteBySiteEntryId,
@@ -58,6 +59,8 @@ export const SiteBySiteApp = clientEntry(
     let selectedFolderPath: string | null = null
     let homeDividerPercent = 50
     let draggingHomeDivider = false
+    let homeFeedbackChoice: Exclude<VoteChoice, 'skip'> | null = null
+    let homeFeedbackVersion = 0
     let dividerPercent = 50
     let savedDividerPercent = 50
     let draggingDivider = false
@@ -83,6 +86,7 @@ export const SiteBySiteApp = clientEntry(
         initialized = true
         installComparisonViewport()
         installComparisonControls()
+        installHomePreviewControls()
         void initialize()
       })
     }
@@ -202,13 +206,50 @@ export const SiteBySiteApp = clientEntry(
       })
     }
 
+    function installHomePreviewControls() {
+      if (handle.props.page !== 'home') return
+
+      let onKeyDown = (event: KeyboardEvent) => {
+        if (
+          event.defaultPrevented ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.altKey ||
+          event.repeat ||
+          (event.target instanceof Element &&
+            event.target.closest('a, button, input, select, textarea, [contenteditable="true"]'))
+        ) return
+
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault()
+          void showHomeChoiceFeedback('left')
+        }
+        if (event.key === 'ArrowRight') {
+          event.preventDefault()
+          void showHomeChoiceFeedback('right')
+        }
+      }
+
+      window.addEventListener('keydown', onKeyDown)
+      handle.signal.addEventListener('abort', () => {
+        window.removeEventListener('keydown', onKeyDown)
+      })
+    }
+
+    async function showHomeChoiceFeedback(choice: Exclude<VoteChoice, 'skip'>) {
+      let version = ++homeFeedbackVersion
+      homeFeedbackChoice = choice
+      await handle.update()
+      await delay(homeFeedbackDuration)
+      if (homeFeedbackVersion !== version || handle.signal.aborted) return
+      homeFeedbackChoice = null
+      await handle.update()
+    }
+
     function setHomeDivider(percent: number) {
       homeDividerPercent = Math.min(100, Math.max(0, percent))
       let preview = document.querySelector<HTMLElement>('[data-home-comparison]')
       preview?.style.setProperty('--divider', `${homeDividerPercent}%`)
-      preview
-        ?.querySelector<HTMLElement>('[data-home-divider]')
-        ?.setAttribute('aria-valuenow', String(Math.round(homeDividerPercent)))
     }
 
     function moveHomeDivider(clientX: number) {
@@ -220,9 +261,10 @@ export const SiteBySiteApp = clientEntry(
 
     function homeDividerPointerDown(event: Event) {
       let pointerEvent = event as PointerEvent
-      let divider = event.currentTarget as HTMLButtonElement
-      divider.setAttribute('data-pointer-focus', '')
-      divider.focus({ preventScroll: true })
+      let divider = event.currentTarget as HTMLDivElement
+      document
+        .querySelector<HTMLElement>('[data-home-comparison]')
+        ?.focus({ preventScroll: true })
       divider.setPointerCapture(pointerEvent.pointerId)
       draggingHomeDivider = true
       moveHomeDivider(pointerEvent.clientX)
@@ -235,24 +277,10 @@ export const SiteBySiteApp = clientEntry(
     function homeDividerPointerUp(event: Event) {
       let pointerEvent = event as PointerEvent
       draggingHomeDivider = false
-      let divider = event.currentTarget as HTMLButtonElement
+      let divider = event.currentTarget as HTMLDivElement
       if (divider.hasPointerCapture(pointerEvent.pointerId)) {
         divider.releasePointerCapture(pointerEvent.pointerId)
       }
-    }
-
-    function homeDividerKeyDown(event: Event) {
-      let keyboardEvent = event as KeyboardEvent
-      let divider = event.currentTarget as HTMLButtonElement
-      divider.removeAttribute('data-pointer-focus')
-      let nextPercent = homeDividerPercent
-      if (keyboardEvent.key === 'ArrowLeft') nextPercent -= 5
-      else if (keyboardEvent.key === 'ArrowRight') nextPercent += 5
-      else if (keyboardEvent.key === 'Home') nextPercent = 0
-      else if (keyboardEvent.key === 'End') nextPercent = 100
-      else return
-      keyboardEvent.preventDefault()
-      setHomeDivider(nextPercent)
     }
 
     async function importPastedUrls(event: Event) {
@@ -671,42 +699,75 @@ export const SiteBySiteApp = clientEntry(
               <div
                 class="home-preview"
                 style={{ '--divider': `${homeDividerPercent}%` }}
+                tabIndex={-1}
                 data-home-comparison
               >
-                <div class="home-preview-side home-preview-left" aria-hidden="true">
-                  <span>studio</span>
-                  <strong>Objects for<br />quiet rooms.</strong>
-                  <i></i>
+                <div class="home-preview-scenes" aria-hidden="true">
+                  <div class="home-preview-side home-preview-left">
+                    <div class="home-preview-page home-preview-page-left">
+                      <p class="home-preview-site-eyebrow">Edition 04</p>
+                      <strong class="home-preview-site-title">Objects for<br />quiet rooms.</strong>
+                      <div class="home-preview-object home-preview-object-left"></div>
+                      <div class="home-preview-site-detail home-preview-site-detail-left">
+                        <span>Oak</span>
+                        <span>Linen</span>
+                        <span>Steel</span>
+                      </div>
+                      <p class="home-preview-site-meta">Made slowly in Berlin.</p>
+                    </div>
+                  </div>
+                  <div class="home-preview-side home-preview-right">
+                    <div class="home-preview-page home-preview-page-right">
+                      <p class="home-preview-site-eyebrow">Field note 12</p>
+                      <strong class="home-preview-site-title">Ideas for<br />loud places.</strong>
+                      <div class="home-preview-object home-preview-object-right"></div>
+                      <div class="home-preview-site-detail home-preview-site-detail-right">
+                        <span>52.5200° N</span>
+                        <span>13.4050° E</span>
+                        <span>Night / 24°C</span>
+                      </div>
+                      <p class="home-preview-site-meta">Recorded after midnight.</p>
+                    </div>
+                  </div>
+                  <div class="home-preview-status home-preview-status-left">
+                    <span class="home-preview-status-domain">studio.test</span>
+                    <span class="home-preview-status-action">
+                      <span class="home-preview-status-action-label">Didn’t load?</span>
+                      <kbd class="home-preview-key">Z</kbd>
+                    </span>
+                  </div>
+                  <div class="home-preview-status home-preview-status-right">
+                    <span class="home-preview-status-domain">fieldnotes.test</span>
+                    <span class="home-preview-status-action">
+                      <span class="home-preview-status-action-label">Didn’t load?</span>
+                      <kbd class="home-preview-key">X</kbd>
+                    </span>
+                  </div>
+                  <div class="home-preview-dock">
+                    <p>Drag the divider to inspect both sites</p>
+                    <div class="home-preview-actions">
+                      <span>Left <kbd class="home-preview-key">←</kbd></span>
+                      <span>Swap <kbd class="home-preview-key">S</kbd></span>
+                      <span>Skip <kbd class="home-preview-key">↓</kbd></span>
+                      <span>Right <kbd class="home-preview-key">→</kbd></span>
+                    </div>
+                  </div>
+                  <div class={`vote-feedback${homeFeedbackChoice ? ` is-visible feedback-${homeFeedbackChoice}` : ''}`}></div>
                 </div>
-                <div class="home-preview-side home-preview-right" aria-hidden="true">
-                  <span>field notes</span>
-                  <strong>Ideas for<br />loud places.</strong>
-                  <i></i>
-                </div>
-                <button
+                <div
                   class="home-preview-divider"
-                  type="button"
-                  role="slider"
-                  aria-label="Preview the site comparison divider"
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={Math.round(homeDividerPercent)}
+                  aria-hidden="true"
                   data-home-divider
                   mix={[
-                    on<HTMLButtonElement>('pointerdown', homeDividerPointerDown),
-                    on<HTMLButtonElement>('pointermove', homeDividerPointerMove),
-                    on<HTMLButtonElement>('pointerup', homeDividerPointerUp),
-                    on<HTMLButtonElement>('pointercancel', homeDividerPointerUp),
-                    on<HTMLButtonElement>('keydown', homeDividerKeyDown),
-                    on<HTMLButtonElement>('blur', (event) => {
-                      event.currentTarget.removeAttribute('data-pointer-focus')
-                    }),
-                    on<HTMLButtonElement>('dblclick', () => setHomeDivider(50)),
+                    on<HTMLDivElement>('pointerdown', homeDividerPointerDown),
+                    on<HTMLDivElement>('pointermove', homeDividerPointerMove),
+                    on<HTMLDivElement>('pointerup', homeDividerPointerUp),
+                    on<HTMLDivElement>('pointercancel', homeDividerPointerUp),
+                    on<HTMLDivElement>('dblclick', () => setHomeDivider(50)),
                   ]}
                 >
                   <span class="divider-line"></span><span class="divider-handle"></span>
-                </button>
-                <p class="home-preview-hint" aria-hidden="true">Drag to compare</p>
+                </div>
               </div>
               <p class="home-summary">
                 Add bookmarks or paste links. Each choice builds a ranking stored only in this

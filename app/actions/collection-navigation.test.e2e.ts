@@ -36,6 +36,12 @@ describe('saved collection navigation', () => {
       await page.locator('.home-submit').evaluate((element) => getComputedStyle(element).boxShadow),
       'none',
     )
+    assert.equal(
+      await page.locator('.home-preview').evaluate(
+        (element) => element.getBoundingClientRect().height,
+      ),
+      224,
+    )
     await page.getByLabel('Links').fill('https://example.com\nhttps://example.org')
     await startButton.click()
     await page.waitForURL(/\/collections\/[^/]+\/compare$/)
@@ -334,6 +340,17 @@ describe('saved collection navigation', () => {
     let preview = page.locator('.home-preview')
     assert.equal(await preview.evaluate((element) => getComputedStyle(element).boxShadow), 'none')
     assert.equal(
+      await preview.locator('button, a, input, select, textarea, [tabindex]').count(),
+      0,
+    )
+    assert.equal(await preview.locator('.home-preview-scenes').getAttribute('aria-hidden'), 'true')
+    assert.equal(
+      await preview.locator('.home-preview-scenes').evaluate(
+        (element) => getComputedStyle(element).pointerEvents,
+      ),
+      'none',
+    )
+    assert.equal(
       await page.locator('.home-preview-left').evaluate(
         (element) => getComputedStyle(element).backgroundColor,
       ),
@@ -345,32 +362,111 @@ describe('saved collection navigation', () => {
       ),
       'rgb(49, 90, 103)',
     )
+    let previewGeometry = await preview.evaluate((element) => {
+      let previewBounds = element.getBoundingClientRect()
+      let bounds = (selector: string) => {
+        let target = element.querySelector<HTMLElement>(selector)
+        if (!target) throw new Error(`Missing preview element: ${selector}`)
+        return target.getBoundingClientRect()
+      }
+      let midpoint = previewBounds.left + previewBounds.width / 2
+      let leftScene = bounds('.home-preview-left')
+      let rightScene = bounds('.home-preview-right')
+      let leftObject = bounds('.home-preview-object-left')
+      let rightObject = bounds('.home-preview-object-right')
+      let leftDetail = bounds('.home-preview-site-detail-left')
+      let rightDetail = bounds('.home-preview-site-detail-right')
+      let leftStatus = bounds('.home-preview-status-left')
+      let rightStatus = bounds('.home-preview-status-right')
+      let dock = bounds('.home-preview-dock')
+      let divider = element.querySelector<HTMLElement>('[data-home-divider]')
+      let overlays = [leftStatus, rightStatus, dock]
 
-    let slider = page.getByRole('slider', { name: 'Preview the site comparison divider' })
-    await slider.click()
-    assert.equal(await slider.evaluate((element) => document.activeElement === element), true)
-    assert.equal(await slider.getAttribute('data-pointer-focus'), '')
+      return {
+        height: previewBounds.height,
+        scenesFillPreview:
+          leftScene.width >= previewBounds.width - 2 &&
+          rightScene.width >= previewBounds.width - 2,
+        leftObjectCrossesMidpoint: leftObject.left < midpoint && leftObject.right > midpoint,
+        rightObjectCrossesMidpoint: rightObject.left < midpoint && rightObject.right > midpoint,
+        leftRevealIsConcealed: leftDetail.left > midpoint,
+        rightRevealIsConcealed: rightDetail.right < midpoint,
+        overlaysStayInside: overlays.every(
+          (overlay) =>
+            overlay.left >= previewBounds.left &&
+            overlay.right <= previewBounds.right &&
+            overlay.top >= previewBounds.top &&
+            overlay.bottom <= previewBounds.bottom,
+        ),
+        dockClearsStatuses:
+          dock.top >= leftStatus.bottom && dock.top >= rightStatus.bottom,
+        dockMidpointTargetsDivider:
+          document
+            .elementFromPoint(midpoint, dock.top + dock.height / 2)
+            ?.closest('[data-home-divider]') === divider,
+      }
+    })
+    assert.equal(previewGeometry.height, 176)
+    assert.equal(previewGeometry.scenesFillPreview, true)
+    assert.equal(previewGeometry.leftObjectCrossesMidpoint, true)
+    assert.equal(previewGeometry.rightObjectCrossesMidpoint, true)
+    assert.equal(previewGeometry.leftRevealIsConcealed, true)
+    assert.equal(previewGeometry.rightRevealIsConcealed, true)
+    assert.equal(previewGeometry.overlaysStayInside, true)
+    assert.equal(previewGeometry.dockClearsStatuses, true)
+    assert.equal(previewGeometry.dockMidpointTargetsDivider, true)
+
+    let homeDivider = preview.locator('[data-home-divider]')
+    assert.equal(await homeDivider.evaluate((element) => element.tagName), 'DIV')
+    assert.equal(await homeDivider.getAttribute('tabindex'), null)
+    assert.equal(await homeDivider.getAttribute('role'), null)
+    assert.equal(await homeDivider.getAttribute('aria-hidden'), 'true')
+
+    let initialClipPaths = await preview.evaluate((element) => ({
+      left: getComputedStyle(element.querySelector<HTMLElement>('.home-preview-left')!).clipPath,
+      right: getComputedStyle(element.querySelector<HTMLElement>('.home-preview-right')!).clipPath,
+    }))
+    let previewBox = await preview.boundingBox()
+    assert.ok(previewBox)
+    await page.mouse.move(
+      previewBox.x + previewBox.width / 2,
+      previewBox.y + previewBox.height / 2,
+    )
+    await page.mouse.down()
+    await page.mouse.move(
+      previewBox.x + previewBox.width * .8,
+      previewBox.y + previewBox.height / 2,
+    )
+    await page.mouse.up()
+
     assert.equal(
-      await slider.locator('.divider-handle').evaluate(
-        (element) => getComputedStyle(element).boxShadow,
-      ),
-      'none',
+      await preview.evaluate((element) => document.activeElement === element),
+      true,
     )
-    let homepageLink = page.getByRole('link', { name: 'Homepage' })
-    await homepageLink.focus()
-    assert.equal(await slider.getAttribute('data-pointer-focus'), null)
-    await page.keyboard.press('Tab')
-    assert.equal(await slider.evaluate((element) => document.activeElement === element), true)
-    assert.equal(await slider.evaluate((element) => element.matches(':focus-visible')), true)
-    assert.notEqual(
-      await slider.locator('.divider-handle').evaluate(
-        (element) => getComputedStyle(element).boxShadow,
-      ),
-      'none',
+    assert.equal(
+      await homeDivider.evaluate((element) => document.activeElement === element),
+      false,
     )
-    assert.equal(await slider.getAttribute('aria-valuenow'), '50')
+    let draggedState = await preview.evaluate((element) => ({
+      percent: Number.parseFloat(element.style.getPropertyValue('--divider')),
+      left: getComputedStyle(element.querySelector<HTMLElement>('.home-preview-left')!).clipPath,
+      right: getComputedStyle(element.querySelector<HTMLElement>('.home-preview-right')!).clipPath,
+    }))
+    assert.ok(draggedState.percent > 75)
+    assert.notEqual(draggedState.left, initialClipPaths.left)
+    assert.notEqual(draggedState.right, initialClipPaths.right)
+
     await page.keyboard.press('ArrowRight')
-    assert.equal(await slider.getAttribute('aria-valuenow'), '55')
+    await preview.locator('.vote-feedback.is-visible.feedback-right').waitFor()
+    assert.equal(
+      await preview.evaluate((element) =>
+        Number.parseFloat(element.style.getPropertyValue('--divider')),
+      ),
+      draggedState.percent,
+    )
+    await preview.locator('.vote-feedback.is-visible').waitFor({ state: 'hidden' })
+    await page.keyboard.press('ArrowLeft')
+    await preview.locator('.vote-feedback.is-visible.feedback-left').waitFor()
   })
 
   it('exports and restores the complete browser library', { timeout: 15_000 }, async (t) => {
