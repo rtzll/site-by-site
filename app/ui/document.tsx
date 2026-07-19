@@ -23,12 +23,8 @@ export function Document(handle: Handle<DocumentProps>) {
           <meta charSet="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <meta name="theme-color" content={darkCanvas ? '#111111' : '#f4f1e9'} />
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
-          />
+          <link rel="preconnect" href="https://rsms.me" />
+          <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
           <link rel="stylesheet" href={stylesHref} />
           <title>{title}</title>
         </head>
@@ -54,7 +50,8 @@ const bodyStyle = css({
   minHeight: '100dvh',
   color: '#1d1d1b',
   background: '#f4f1e9',
-  fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
+  fontFamily: 'InterVariable, Inter, ui-sans-serif, system-ui, sans-serif',
+  fontOpticalSizing: 'auto',
   fontFeatureSettings: '"cv02", "cv03", "cv04", "cv11", "ss01", "ss03"',
   fontSynthesis: 'none',
   '&.home-body, &.workspace-body': { color: '#1d1d1b', background: '#f4f1e9', colorScheme: 'light' },

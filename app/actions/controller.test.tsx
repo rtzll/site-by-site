@@ -14,12 +14,20 @@ describe('local-first application routes', () => {
     let html = await response.text()
     assert.match(
       html,
-      /Add bookmarks or paste links to compare websites side by side\. Everything stays in this browser\./,
+      /Find the websites that inspire you most\./,
+    )
+    assert.match(
+      html,
+      /Site by Site turns those choices into a personal ranking—stored only in this browser\./,
     )
     assert.match(html, /Preview the site comparison divider/)
     assert.match(html, /Drag to compare/)
     assert.match(html, />Demo</)
     assert.match(html, /34 personal sites/)
+    assert.match(html, /Library backup/)
+    assert.match(html, /Restore backup/)
+    assert.match(html, /https:\/\/rsms\.me\/inter\/inter\.css/)
+    assert.match(html, /InterVariable/)
     assert.doesNotMatch(html, /A quieter way to decide/)
   })
 

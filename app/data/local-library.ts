@@ -2,7 +2,7 @@ import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
 
 import { updateElo } from '../services/elo.ts'
 import { pairKey, selectPair } from '../services/pair-selector.ts'
-import type { ImportedUrl } from '../utils/urls.ts'
+import { normalizeUrl, type ImportedUrl } from '../utils/urls.ts'
 
 export type SourceType = 'bookmarks' | 'paste' | 'demo'
 export type VoteChoice = 'left' | 'right' | 'skip'
@@ -15,6 +15,7 @@ export interface CollectionSummary {
   availableCount: number
   unavailableCount: number
   comparisonCount: number
+  canUndoLastAction: boolean
   createdAt: number
   updatedAt: number
 }
@@ -49,13 +50,45 @@ export interface ComparisonPair {
   right: ComparisonWebsite
 }
 
+export interface LibraryBackupCurrentPair {
+  id: string
+  leftWebsiteId: string
+  rightWebsiteId: string
+}
+
+export interface LibraryBackupCollection {
+  id: string
+  name: string
+  sourceType: SourceType
+  currentPair: LibraryBackupCurrentPair | null
+  createdAt: number
+  updatedAt: number
+}
+
+export interface LibraryBackupComparison {
+  id: string
+  collectionId: string
+  pairKey: string
+  leftWebsiteId: string
+  rightWebsiteId: string
+  choice: VoteChoice
+  winnerWebsiteId: string | null
+  createdAt: number
+}
+
 export interface LocalLibraryExport {
   format: 'site-by-site-library'
   version: 1
   exportedAt: string
-  collections: CollectionRecord[]
+  collections: LibraryBackupCollection[]
   websites: WebsiteRecord[]
-  comparisons: ComparisonRecord[]
+  comparisons: LibraryBackupComparison[]
+}
+
+export interface RestoreSummary {
+  collectionCount: number
+  websiteCount: number
+  comparisonCount: number
 }
 
 export interface LocalLibrary {
@@ -79,35 +112,32 @@ export interface LocalLibrary {
     pairId: string
     websiteId: string
   }): Promise<ComparisonPair | null>
+  undoLastAction(collectionId: string): Promise<ComparisonPair | null>
   getRanking(collectionId: string): Promise<WebsiteRecord[]>
   exportData(): Promise<LocalLibraryExport>
+  restoreData(value: unknown): Promise<RestoreSummary>
 }
 
-interface CurrentPair {
-  id: string
-  leftWebsiteId: string
-  rightWebsiteId: string
+type CurrentPair = LibraryBackupCurrentPair
+
+interface CollectionRecord extends LibraryBackupCollection {
+  lastComparisonAction?: LastComparisonAction | null
 }
 
-interface CollectionRecord {
-  id: string
-  name: string
-  sourceType: SourceType
-  currentPair: CurrentPair | null
-  createdAt: number
-  updatedAt: number
-}
+type LastComparisonAction =
+  | {
+      kind: 'choice'
+      pair: CurrentPair
+      comparisonId: string
+      websites: [WebsiteRecord, WebsiteRecord]
+    }
+  | {
+      kind: 'unavailable'
+      pair: CurrentPair
+      websites: [WebsiteRecord]
+    }
 
-interface ComparisonRecord {
-  id: string
-  collectionId: string
-  pairKey: string
-  leftWebsiteId: string
-  rightWebsiteId: string
-  choice: VoteChoice
-  winnerWebsiteId: string | null
-  createdAt: number
-}
+type ComparisonRecord = LibraryBackupComparison
 
 interface SiteBySiteDatabase extends DBSchema {
   collections: {
@@ -192,6 +222,7 @@ class IndexedDbLocalLibrary implements LocalLibrary {
       name: await this.collectionName(input.name),
       sourceType: input.sourceType,
       currentPair: null,
+      lastComparisonAction: null,
       createdAt: timestamp,
       updatedAt: timestamp,
     }
@@ -328,6 +359,9 @@ class IndexedDbLocalLibrary implements LocalLibrary {
       throw new Error('A website in this comparison no longer exists.')
     }
 
+    let pair = { ...collection.currentPair }
+    let websiteSnapshots: [WebsiteRecord, WebsiteRecord] = [{ ...left }, { ...right }]
+
     let winnerWebsiteId: string | null = null
     if (input.choice === 'skip') {
       left.skips++
@@ -349,8 +383,9 @@ class IndexedDbLocalLibrary implements LocalLibrary {
     left.updatedAt = timestamp
     right.updatedAt = timestamp
     await Promise.all([websiteStore.put(left), websiteStore.put(right)])
+    let comparisonId = this.createId()
     await transaction.objectStore('comparisons').add({
-      id: this.createId(),
+      id: comparisonId,
       collectionId: collection.id,
       pairKey: pairKey(left.id, right.id),
       leftWebsiteId: left.id,
@@ -360,6 +395,12 @@ class IndexedDbLocalLibrary implements LocalLibrary {
       createdAt: timestamp,
     })
     collection.currentPair = null
+    collection.lastComparisonAction = {
+      kind: 'choice',
+      pair,
+      comparisonId,
+      websites: websiteSnapshots,
+    }
     collection.updatedAt = timestamp
     await collectionStore.put(collection)
     await transaction.done
@@ -391,13 +432,47 @@ class IndexedDbLocalLibrary implements LocalLibrary {
     }
 
     let timestamp = this.now()
+    let pair = { ...collection.currentPair }
+    let websiteSnapshot = { ...website }
     website.status = 'unavailable'
     website.updatedAt = timestamp
     collection.currentPair = null
+    collection.lastComparisonAction = {
+      kind: 'unavailable',
+      pair,
+      websites: [websiteSnapshot],
+    }
     collection.updatedAt = timestamp
     await Promise.all([websiteStore.put(website), collectionStore.put(collection)])
     await transaction.done
     return this.getNextPair(collection.id)
+  }
+
+  async undoLastAction(collectionId: string): Promise<ComparisonPair | null> {
+    let transaction = this.database.transaction(
+      ['collections', 'websites', 'comparisons'],
+      'readwrite',
+    )
+    let collectionStore = transaction.objectStore('collections')
+    let websiteStore = transaction.objectStore('websites')
+    let comparisonStore = transaction.objectStore('comparisons')
+    let collection = await collectionStore.get(collectionId)
+    let action = collection?.lastComparisonAction
+    if (!collection || !action) {
+      await transaction.done
+      return null
+    }
+
+    await Promise.all(action.websites.map((website) => websiteStore.put(website)))
+    if (action.kind === 'choice') await comparisonStore.delete(action.comparisonId)
+
+    collection.currentPair = action.pair
+    collection.lastComparisonAction = null
+    collection.updatedAt = this.now()
+    await collectionStore.put(collection)
+    let pair = await hydratePair(action.pair, websiteStore)
+    await transaction.done
+    return pair
   }
 
   async getRanking(collectionId: string): Promise<WebsiteRecord[]> {
@@ -425,9 +500,42 @@ class IndexedDbLocalLibrary implements LocalLibrary {
       format: 'site-by-site-library',
       version: 1,
       exportedAt: new Date(this.now()).toISOString(),
-      collections,
+      collections: collections.map(({ lastComparisonAction: _lastComparisonAction, ...record }) =>
+        record,
+      ),
       websites,
       comparisons,
+    }
+  }
+
+  async restoreData(value: unknown): Promise<RestoreSummary> {
+    let backup = parseLocalLibraryExport(value)
+    let transaction = this.database.transaction(
+      ['collections', 'websites', 'comparisons'],
+      'readwrite',
+    )
+    let collectionStore = transaction.objectStore('collections')
+    let websiteStore = transaction.objectStore('websites')
+    let comparisonStore = transaction.objectStore('comparisons')
+    let operations: Promise<unknown>[] = [
+      collectionStore.clear(),
+      websiteStore.clear(),
+      comparisonStore.clear(),
+    ]
+
+    operations.push(
+      ...backup.collections.map((collection) =>
+        collectionStore.add({ ...collection, lastComparisonAction: null }),
+      ),
+      ...backup.websites.map((website) => websiteStore.add(website)),
+      ...backup.comparisons.map((comparison) => comparisonStore.add(comparison)),
+    )
+
+    await Promise.all([...operations, transaction.done])
+    return {
+      collectionCount: backup.collections.length,
+      websiteCount: backup.websites.length,
+      comparisonCount: backup.comparisons.length,
     }
   }
 
@@ -447,6 +555,7 @@ class IndexedDbLocalLibrary implements LocalLibrary {
       availableCount,
       unavailableCount: websites.length - availableCount,
       comparisonCount,
+      canUndoLastAction: Boolean(collection.lastComparisonAction),
       createdAt: collection.createdAt,
       updatedAt: collection.updatedAt,
     }
@@ -462,6 +571,251 @@ class IndexedDbLocalLibrary implements LocalLibrary {
     while (names.has(`Untitled collection ${index}`)) index++
     return `Untitled collection ${index}`
   }
+}
+
+export function parseLocalLibraryExport(value: unknown): LocalLibraryExport {
+  if (!isRecord(value) || value.format !== 'site-by-site-library') {
+    throw new Error('This is not a Site by Site backup.')
+  }
+  if (typeof value.version !== 'number') throw damagedBackup()
+  if (value.version !== 1) throw new Error('This backup version is not supported.')
+  if (
+    typeof value.exportedAt !== 'string' ||
+    !Number.isFinite(Date.parse(value.exportedAt)) ||
+    !Array.isArray(value.collections) ||
+    !Array.isArray(value.websites) ||
+    !Array.isArray(value.comparisons)
+  ) {
+    throw damagedBackup()
+  }
+
+  let collections = value.collections.map(parseBackupCollection)
+  let websites = value.websites.map(parseBackupWebsite)
+  let comparisons = value.comparisons.map(parseBackupComparison)
+  validateBackupReferences(collections, websites, comparisons)
+
+  return {
+    format: 'site-by-site-library',
+    version: 1,
+    exportedAt: value.exportedAt,
+    collections,
+    websites,
+    comparisons,
+  }
+}
+
+function parseBackupCollection(value: unknown): LibraryBackupCollection {
+  if (!isRecord(value)) throw damagedBackup()
+  let id = backupString(value.id)
+  let name = backupString(value.name, 80)
+  let sourceType = value.sourceType
+  if (sourceType !== 'bookmarks' && sourceType !== 'paste' && sourceType !== 'demo') {
+    throw damagedBackup()
+  }
+
+  let currentPair: LibraryBackupCurrentPair | null = null
+  if (value.currentPair !== null) {
+    if (!isRecord(value.currentPair)) throw damagedBackup()
+    currentPair = {
+      id: backupString(value.currentPair.id),
+      leftWebsiteId: backupString(value.currentPair.leftWebsiteId),
+      rightWebsiteId: backupString(value.currentPair.rightWebsiteId),
+    }
+  }
+
+  let createdAt = backupInteger(value.createdAt)
+  let updatedAt = backupInteger(value.updatedAt)
+  if (updatedAt < createdAt) throw damagedBackup()
+  return { id, name, sourceType, currentPair, createdAt, updatedAt }
+}
+
+function parseBackupWebsite(value: unknown): WebsiteRecord {
+  if (!isRecord(value)) throw damagedBackup()
+  let status = value.status
+  if (status !== 'ready' && status !== 'unavailable') throw damagedBackup()
+  let title = value.title
+  if (title !== null && typeof title !== 'string') throw damagedBackup()
+
+  let website: WebsiteRecord = {
+    id: backupString(value.id),
+    collectionId: backupString(value.collectionId),
+    inputUrl: backupString(value.inputUrl),
+    normalizedUrl: backupString(value.normalizedUrl),
+    domain: backupString(value.domain),
+    title,
+    status,
+    rating: backupNumber(value.rating),
+    comparisons: backupInteger(value.comparisons),
+    wins: backupInteger(value.wins),
+    losses: backupInteger(value.losses),
+    skips: backupInteger(value.skips),
+    createdAt: backupInteger(value.createdAt),
+    updatedAt: backupInteger(value.updatedAt),
+  }
+  let normalizedStoredUrl = normalizeUrl(website.normalizedUrl)
+  let normalizedInputUrl = normalizeUrl(website.inputUrl)
+  if (
+    !normalizedStoredUrl ||
+    !normalizedInputUrl ||
+    normalizedStoredUrl.normalizedUrl !== website.normalizedUrl ||
+    normalizedStoredUrl.domain !== website.domain ||
+    normalizedInputUrl.normalizedUrl !== website.normalizedUrl ||
+    website.wins + website.losses + website.skips !== website.comparisons ||
+    website.updatedAt < website.createdAt
+  ) {
+    throw damagedBackup()
+  }
+  return website
+}
+
+function parseBackupComparison(value: unknown): LibraryBackupComparison {
+  if (!isRecord(value)) throw damagedBackup()
+  let choice = value.choice
+  if (choice !== 'left' && choice !== 'right' && choice !== 'skip') throw damagedBackup()
+  let winnerWebsiteId = value.winnerWebsiteId
+  if (winnerWebsiteId !== null && typeof winnerWebsiteId !== 'string') throw damagedBackup()
+
+  return {
+    id: backupString(value.id),
+    collectionId: backupString(value.collectionId),
+    pairKey: backupString(value.pairKey),
+    leftWebsiteId: backupString(value.leftWebsiteId),
+    rightWebsiteId: backupString(value.rightWebsiteId),
+    choice,
+    winnerWebsiteId,
+    createdAt: backupInteger(value.createdAt),
+  }
+}
+
+function validateBackupReferences(
+  collections: LibraryBackupCollection[],
+  websites: WebsiteRecord[],
+  comparisons: LibraryBackupComparison[],
+) {
+  let collectionIds = uniqueRecordMap(collections)
+  let websiteIds = uniqueRecordMap(websites)
+  uniqueRecordMap(comparisons)
+  let collectionUrls = new Set<string>()
+
+  for (let website of websites) {
+    if (!collectionIds.has(website.collectionId)) throw damagedBackup()
+    let collectionUrl = `${website.collectionId}\u0000${website.normalizedUrl}`
+    if (collectionUrls.has(collectionUrl)) throw damagedBackup()
+    collectionUrls.add(collectionUrl)
+  }
+
+  for (let collection of collections) {
+    if (!collection.currentPair) continue
+    let left = websiteIds.get(collection.currentPair.leftWebsiteId)
+    let right = websiteIds.get(collection.currentPair.rightWebsiteId)
+    if (
+      !left ||
+      !right ||
+      left.id === right.id ||
+      left.collectionId !== collection.id ||
+      right.collectionId !== collection.id ||
+      left.status !== 'ready' ||
+      right.status !== 'ready'
+    ) {
+      throw damagedBackup()
+    }
+  }
+
+  let aggregateByWebsite = new Map(
+    websites.map((website) => [
+      website.id,
+      { comparisons: 0, wins: 0, losses: 0, skips: 0 },
+    ]),
+  )
+  for (let comparison of comparisons) {
+    let left = websiteIds.get(comparison.leftWebsiteId)
+    let right = websiteIds.get(comparison.rightWebsiteId)
+    let expectedWinner =
+      comparison.choice === 'left'
+        ? comparison.leftWebsiteId
+        : comparison.choice === 'right'
+          ? comparison.rightWebsiteId
+          : null
+    if (
+      !collectionIds.has(comparison.collectionId) ||
+      !left ||
+      !right ||
+      left.id === right.id ||
+      left.collectionId !== comparison.collectionId ||
+      right.collectionId !== comparison.collectionId ||
+      comparison.pairKey !== pairKey(left.id, right.id) ||
+      comparison.winnerWebsiteId !== expectedWinner
+    ) {
+      throw damagedBackup()
+    }
+
+    let leftAggregate = aggregateByWebsite.get(left.id)!
+    let rightAggregate = aggregateByWebsite.get(right.id)!
+    leftAggregate.comparisons++
+    rightAggregate.comparisons++
+    if (comparison.choice === 'skip') {
+      leftAggregate.skips++
+      rightAggregate.skips++
+    } else if (comparison.choice === 'left') {
+      leftAggregate.wins++
+      rightAggregate.losses++
+    } else {
+      rightAggregate.wins++
+      leftAggregate.losses++
+    }
+  }
+
+  for (let website of websites) {
+    let aggregate = aggregateByWebsite.get(website.id)!
+    if (
+      website.comparisons !== aggregate.comparisons ||
+      website.wins !== aggregate.wins ||
+      website.losses !== aggregate.losses ||
+      website.skips !== aggregate.skips
+    ) {
+      throw damagedBackup()
+    }
+  }
+}
+
+function uniqueRecordMap<RecordType extends { id: string }>(records: RecordType[]) {
+  let recordMap = new Map<string, RecordType>()
+  for (let record of records) {
+    if (recordMap.has(record.id)) throw damagedBackup()
+    recordMap.set(record.id, record)
+  }
+  return recordMap
+}
+
+function backupString(value: unknown, maxLength?: number): string {
+  if (
+    typeof value !== 'string' ||
+    value.length === 0 ||
+    (maxLength !== undefined && value.length > maxLength) ||
+    value.trim() !== value
+  ) {
+    throw damagedBackup()
+  }
+  return value
+}
+
+function backupNumber(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) throw damagedBackup()
+  return value
+}
+
+function backupInteger(value: unknown): number {
+  let number = backupNumber(value)
+  if (!Number.isSafeInteger(number) || number < 0) throw damagedBackup()
+  return number
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function damagedBackup(): Error {
+  return new Error('This backup is damaged or incomplete.')
 }
 
 function uniqueByUrl(websites: ImportedUrl[]): ImportedUrl[] {

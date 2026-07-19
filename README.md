@@ -43,7 +43,7 @@ pnpm run deploy:preview
 
 ## Privacy and persistence
 
-Collections, URLs, votes, Elo ratings, and unavailable-site choices live in IndexedDB under the app’s origin. The implementation uses the small `idb` wrapper and asks the browser for persistent storage after a successful import.
+Collections, URLs, votes, Elo ratings, and unavailable-site choices live in IndexedDB under the app’s origin. The implementation uses the small `idb` wrapper and asks the browser for persistent storage after a successful import or restore.
 
 The server:
 
@@ -55,7 +55,7 @@ The server:
 
 Loading a comparison naturally makes the browser contact each third-party website. Comparison iframes use `referrerPolicy="no-referrer"`, so those websites do not receive the Site by Site page URL.
 
-Browser storage remains scoped to one origin and browser profile. Clearing site data removes the library. The home and collection pages therefore offer a JSON backup download.
+Browser storage remains scoped to one origin and browser profile. Clearing site data removes the library. The home page therefore offers a full-library JSON backup that can be exported or restored. Restore validates the complete file before atomically replacing the current browser library.
 
 ## Product flow
 
@@ -67,6 +67,7 @@ Browser storage remains scoped to one origin and browser profile. Clearing site 
 6. Votes update Elo and comparison statistics atomically in IndexedDB.
 7. Rankings and collection summaries are read from the same local library on later visits.
 8. If a site does not render, mark the left or right site unavailable. It is stored locally and excluded from future pairs.
+9. Undo reverses the most recent vote, skip, or unavailable-site action and returns to the exact previous pair.
 
 ## Comparison controls
 
@@ -76,11 +77,14 @@ Browser storage remains scoped to one origin and browser profile. Clearing site 
 - `s` swaps the visible sides without reloading either website
 - `z` marks the visible left website unavailable
 - `x` marks the visible right website unavailable
+- `u` undoes the most recent comparison action
 - Hold `1` to reveal the left website
 - Hold `2` to reveal the right website
 - Double-click the divider to reset it
 
-Cross-origin iframes take keyboard focus when a user interacts with them, so the parent page cannot continue receiving arrow keys. A compact bottom dock keeps the controls visible, shows how to resume keyboard input when necessary, and provides left, swap, skip, and right buttons as a reliable fallback. Clicking or dragging the divider returns focus to the parent page. Swapping is visual only: choices are translated back to the underlying pair before they are stored, so rankings and history remain correct.
+Cross-origin iframes take keyboard focus when a user interacts with them, so the parent page cannot continue receiving arrow keys. A compact bottom dock keeps the controls visible, shows how to resume keyboard input when necessary, and provides left, swap, skip, and right buttons as a reliable fallback. Clicking or dragging the divider returns keyboard control to the parent page without making the divider a tab stop. Swapping is visual only: choices are translated back to the underlying pair before they are stored, so rankings and history remain correct.
+
+The two-site workspace requires a viewport at least 640 pixels wide. Narrower windows show the collection and ranking navigation without loading the comparison iframes.
 
 ## Architecture
 
@@ -100,7 +104,7 @@ app/assets/entry.ts               Explicit Remix 3 client entry
 public/styles.css                 Shared authored CSS
 ```
 
-`LocalLibrary` is the persistence seam. Callers work with collection imports, next-pair selection, votes, unavailable sites, rankings, and exports rather than IndexedDB object stores or transactions. Its implementation owns the schema and keeps multi-store comparison updates atomic.
+`LocalLibrary` is the persistence seam. Callers work with collection imports, next-pair selection, votes, unavailable sites, undo, rankings, exports, and restores rather than IndexedDB object stores or transactions. Its implementation owns the schema and keeps multi-store comparison and restore updates atomic.
 
 The IndexedDB schema has three object stores:
 

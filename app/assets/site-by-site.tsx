@@ -9,9 +9,11 @@ import {
 import { demoCollectionName, demoWebsiteUrls } from '../data/demo-websites.ts'
 import {
   openLocalLibrary,
+  parseLocalLibraryExport,
   type CollectionSummary,
   type ComparisonPair,
   type LocalLibrary,
+  type LocalLibraryExport,
   type VoteChoice,
   type WebsiteRecord,
 } from '../data/local-library.ts'
@@ -35,6 +37,7 @@ type PendingAction =
   | 'open-demo'
   | 'rename-collection'
   | 'add-websites'
+  | 'restore-backup'
   | null
 
 export const SiteBySiteApp = clientEntry(
@@ -63,12 +66,19 @@ export const SiteBySiteApp = clientEntry(
     let swapAcknowledgement = false
     let swapAcknowledgementVersion = 0
     let feedbackChoice: VoteChoice | null = null
+    let undoAvailable = false
+    let comparisonNotice: string | null = null
+    let comparisonViewportSupported = true
+    let pendingBackup: LocalLibraryExport | null = null
+    let backupStatus: string | null = null
+    let backupError: string | null = null
     let initialized = false
 
     if (typeof window !== 'undefined') {
       handle.queueTask(() => {
         if (initialized) return
         initialized = true
+        installComparisonViewport()
         installComparisonControls()
         void initialize()
       })
@@ -81,6 +91,7 @@ export const SiteBySiteApp = clientEntry(
           collections = await library.listCollections()
         } else if (handle.props.collectionId) {
           collection = await library.getCollection(handle.props.collectionId)
+          undoAvailable = Boolean(collection?.canUndoLastAction)
           if (handle.props.page === 'ranking') {
             ranking = await library.getRanking(handle.props.collectionId)
           }
@@ -94,15 +105,39 @@ export const SiteBySiteApp = clientEntry(
       } finally {
         loading = false
         await handle.update()
-        if (handle.props.page === 'compare' && pair) focusDivider()
+        if (handle.props.page === 'compare' && pair) focusComparisonStage()
       }
+    }
+
+    function installComparisonViewport() {
+      if (handle.props.page !== 'compare') return
+      let mediaQuery = window.matchMedia('(min-width: 640px)')
+      comparisonViewportSupported = mediaQuery.matches
+      let onChange = (event: MediaQueryListEvent) => {
+        comparisonViewportSupported = event.matches
+        keyboardPaused = false
+        void handle.update().then(() => {
+          if (comparisonViewportSupported && pair) focusComparisonStage()
+        })
+      }
+      mediaQuery.addEventListener('change', onChange)
+      handle.signal.addEventListener('abort', () => {
+        mediaQuery.removeEventListener('change', onChange)
+      })
     }
 
     function installComparisonControls() {
       if (handle.props.page !== 'compare') return
 
       let onKeyDown = (event: KeyboardEvent) => {
-        if (event.metaKey || event.ctrlKey || event.altKey || working || event.repeat) return
+        if (
+          !comparisonViewportSupported ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.altKey ||
+          working ||
+          event.repeat
+        ) return
         if (event.key === 'ArrowLeft') {
           event.preventDefault()
           void submitChoice('left')
@@ -126,6 +161,10 @@ export const SiteBySiteApp = clientEntry(
         if (event.key.toLowerCase() === 'x') {
           event.preventDefault()
           markVisibleSideUnavailable('right')
+        }
+        if (event.key.toLowerCase() === 'u') {
+          event.preventDefault()
+          void undoLastComparisonAction()
         }
         if (event.key === '1') {
           event.preventDefault()
@@ -371,6 +410,8 @@ export const SiteBySiteApp = clientEntry(
       working = true
       feedbackChoice = choice
       keyboardPaused = false
+      error = null
+      comparisonNotice = null
       await handle.update()
       try {
         await library.recordChoice({
@@ -383,13 +424,16 @@ export const SiteBySiteApp = clientEntry(
         collection = await library.getCollection(collection.id)
         feedbackChoice = null
         preparePair()
+        undoAvailable = Boolean(collection?.canUndoLastAction)
+        comparisonNotice = choice === 'skip' ? 'Pair skipped' : 'Choice saved'
+        error = null
       } catch (caught) {
         feedbackChoice = null
         error = messageFrom(caught, 'That choice could not be saved.')
       } finally {
         working = false
         await handle.update()
-        if (pair) focusDivider()
+        if (pair) focusComparisonStage()
       }
     }
 
@@ -397,6 +441,8 @@ export const SiteBySiteApp = clientEntry(
       if (!library || !collection || !pair || working) return
       working = true
       pairLoading = true
+      error = null
+      comparisonNotice = null
       await handle.update()
       try {
         pair = await library.markSiteUnavailable({
@@ -406,12 +452,42 @@ export const SiteBySiteApp = clientEntry(
         })
         collection = await library.getCollection(collection.id)
         preparePair()
+        undoAvailable = Boolean(collection?.canUndoLastAction)
+        comparisonNotice = 'Site removed from comparisons'
+        error = null
       } catch (caught) {
+        pairLoading = false
         error = messageFrom(caught, 'That site could not be marked unavailable.')
       } finally {
         working = false
         await handle.update()
-        if (pair) focusDivider()
+        if (pair) focusComparisonStage()
+      }
+    }
+
+    async function undoLastComparisonAction() {
+      if (!library || !collection || working || !undoAvailable) return
+      working = true
+      error = null
+      await handle.update()
+      try {
+        let restoredPair = await library.undoLastAction(collection.id)
+        collection = await library.getCollection(collection.id)
+        undoAvailable = Boolean(collection?.canUndoLastAction)
+        if (!restoredPair) {
+          comparisonNotice = null
+          error = 'There is no comparison action to undo.'
+          return
+        }
+        pair = restoredPair
+        preparePair()
+        comparisonNotice = 'Last action undone'
+      } catch (caught) {
+        error = messageFrom(caught, 'The last action could not be undone.')
+      } finally {
+        working = false
+        await handle.update()
+        if (pair) focusComparisonStage()
       }
     }
 
@@ -464,7 +540,7 @@ export const SiteBySiteApp = clientEntry(
       keyboardPaused = false
       setDivider(50)
       let pairId = pair.id
-      void handle.update().then(focusDivider)
+      void handle.update().then(focusComparisonStage)
       window.setTimeout(() => {
         if (pair?.id !== pairId || swapAcknowledgementVersion !== acknowledgementVersion) return
         swapAcknowledgement = false
@@ -474,8 +550,8 @@ export const SiteBySiteApp = clientEntry(
 
     function dividerPointerDown(event: Event) {
       let pointerEvent = event as PointerEvent
-      let divider = event.currentTarget as HTMLButtonElement
-      divider.focus({ preventScroll: true })
+      let divider = event.currentTarget as HTMLDivElement
+      focusComparisonStage()
       divider.setPointerCapture(pointerEvent.pointerId)
       draggingDivider = true
       keyboardPaused = false
@@ -489,30 +565,77 @@ export const SiteBySiteApp = clientEntry(
     function dividerPointerUp(event: Event) {
       let pointerEvent = event as PointerEvent
       draggingDivider = false
-      let divider = event.currentTarget as HTMLButtonElement
+      let divider = event.currentTarget as HTMLDivElement
       if (divider.hasPointerCapture(pointerEvent.pointerId)) {
         divider.releasePointerCapture(pointerEvent.pointerId)
       }
       void handle.update()
     }
 
-    function focusDivider() {
+    function focusComparisonStage() {
       window.setTimeout(() => {
-        document.querySelector<HTMLButtonElement>('[data-divider]')?.focus({ preventScroll: true })
+        document.querySelector<HTMLElement>('[data-comparison]')?.focus({ preventScroll: true })
       })
     }
 
     async function exportBackup() {
       if (!library) return
-      let backup = await library.exportData()
-      let url = URL.createObjectURL(
-        new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }),
-      )
-      let link = document.createElement('a')
-      link.href = url
-      link.download = `site-by-site-${new Date().toISOString().slice(0, 10)}.json`
-      link.click()
-      URL.revokeObjectURL(url)
+      backupError = null
+      backupStatus = null
+      try {
+        let backup = await library.exportData()
+        let url = URL.createObjectURL(
+          new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }),
+        )
+        let link = document.createElement('a')
+        link.href = url
+        link.download = `site-by-site-${new Date().toISOString().slice(0, 10)}.json`
+        link.click()
+        URL.revokeObjectURL(url)
+      } catch (caught) {
+        backupError = messageFrom(caught, 'The backup could not be exported.')
+        await handle.update()
+      }
+    }
+
+    async function readBackupFile(file: File) {
+      pendingBackup = null
+      backupStatus = null
+      backupError = null
+      if (file.size > 100_000_000) {
+        backupError = 'That backup is larger than 100 MB.'
+        await handle.update()
+        return
+      }
+
+      try {
+        pendingBackup = parseLocalLibraryExport(JSON.parse(await file.text()))
+      } catch (caught) {
+        backupError = messageFrom(caught, 'That backup could not be read.')
+      }
+      await handle.update()
+    }
+
+    async function restoreBackup() {
+      if (!library || !pendingBackup || working) return
+      working = true
+      pendingAction = 'restore-backup'
+      backupError = null
+      backupStatus = null
+      await handle.update()
+      try {
+        let restored = await library.restoreData(pendingBackup)
+        collections = await library.listCollections()
+        pendingBackup = null
+        backupStatus = `Restored ${countLabel(restored.collectionCount, 'collection')} and ${countLabel(restored.websiteCount, 'website')}.`
+        await requestPersistentStorage()
+      } catch (caught) {
+        backupError = messageFrom(caught, 'The library could not be restored.')
+      } finally {
+        working = false
+        pendingAction = null
+        await handle.update()
+      }
     }
 
     function renderHome() {
@@ -521,7 +644,9 @@ export const SiteBySiteApp = clientEntry(
           <AppHeader />
           <main class="home-main isolate">
             <section class="home-entry" aria-labelledby="home-heading">
-              <h1 class="sr-only" id="home-heading">Compare websites side by side</h1>
+              <h1 class="home-heading" id="home-heading">
+                Find the websites that inspire you most.
+              </h1>
               <div
                 class="home-preview"
                 style={{ '--divider': `${homeDividerPercent}%` }}
@@ -560,7 +685,9 @@ export const SiteBySiteApp = clientEntry(
                 <p class="home-preview-hint" aria-hidden="true">Drag to compare</p>
               </div>
               <p class="home-summary">
-                Add bookmarks or paste links to compare websites side by side. Everything stays in this browser.
+                Add bookmarks or paste links, compare them side by side, and choose what inspires
+                you. Site by Site turns those choices into a personal ranking—stored only in this
+                browser.
               </p>
 
               {error ? <p class="home-error" role="alert">{error}</p> : null}
@@ -608,19 +735,30 @@ export const SiteBySiteApp = clientEntry(
                     <div class="home-folder-picker">
                       <label for="bookmark-folder">Folder</label>
                       <div class="home-folder-controls">
-                        <select
-                          id="bookmark-folder"
-                          name="bookmark-folder"
-                          value={selectedFolderPath ?? ''}
-                          mix={on<HTMLSelectElement>('change', (event) => {
-                            selectedFolderPath = event.currentTarget.value
-                            void handle.update()
-                          })}
-                        >
-                          {bookmarkFolders.map((folder) => (
-                            <option value={folder.path}>{folder.path} · {folder.urls.length}</option>
-                          ))}
-                        </select>
+                        <span class="home-folder-select">
+                          <select
+                            id="bookmark-folder"
+                            name="bookmark-folder"
+                            value={selectedFolderPath ?? ''}
+                            mix={on<HTMLSelectElement>('change', (event) => {
+                              selectedFolderPath = event.currentTarget.value
+                              void handle.update()
+                            })}
+                          >
+                            {bookmarkFolders.map((folder) => (
+                              <option value={folder.path}>{folder.path} · {folder.urls.length}</option>
+                            ))}
+                          </select>
+                          <svg
+                            viewBox="0 0 8 5"
+                            width="8"
+                            height="5"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <path d="M.5.5 4 4 7.5.5" stroke="currentColor" />
+                          </svg>
+                        </span>
                         <button
                           class="home-control"
                           type="button"
@@ -672,9 +810,6 @@ export const SiteBySiteApp = clientEntry(
               <section class="home-library" aria-labelledby="saved-heading">
                 <div class="home-library-heading">
                   <h2 id="saved-heading">Saved in this browser</h2>
-                  <button type="button" mix={on<HTMLButtonElement>('click', () => void exportBackup())}>
-                    Download backup
-                  </button>
                 </div>
                 <div class="home-library-list">
                   {collections.map((saved) => (
@@ -691,6 +826,76 @@ export const SiteBySiteApp = clientEntry(
                 </div>
               </section>
             ) : null}
+
+            <section class="home-backup" aria-labelledby="backup-heading">
+              <div class="home-backup-row">
+                <div class="home-backup-copy">
+                  <h2 id="backup-heading">Library backup</h2>
+                  <p>Move or recover everything saved in this browser.</p>
+                </div>
+                <div class="home-backup-controls">
+                  <button
+                    type="button"
+                    disabled={!library || collections.length === 0 || working}
+                    mix={on<HTMLButtonElement>('click', () => void exportBackup())}
+                  >
+                    Export backup
+                  </button>
+                  <label class="home-backup-file">
+                    <span>Restore backup</span>
+                    <input
+                      class="sr-only"
+                      type="file"
+                      name="backup"
+                      accept=".json,application/json"
+                      disabled={!library || working}
+                      mix={on<HTMLInputElement>('change', (event) => {
+                        let file = event.currentTarget.files?.[0]
+                        event.currentTarget.value = ''
+                        if (file) void readBackupFile(file)
+                      })}
+                    />
+                  </label>
+                </div>
+              </div>
+              {pendingBackup ? (
+                <div class="home-backup-confirmation">
+                  <p role="status">
+                    This backup contains {countLabel(pendingBackup.collections.length, 'collection')} and{' '}
+                    {countLabel(pendingBackup.websites.length, 'website')}.{' '}
+                    {collections.length > 0
+                      ? `Restoring it replaces the ${countLabel(collections.length, 'collection')} currently saved in this browser.`
+                      : 'Your browser library is currently empty.'}
+                  </p>
+                  <div>
+                    <button
+                      type="button"
+                      disabled={working}
+                      mix={on<HTMLButtonElement>('click', () => {
+                        pendingBackup = null
+                        backupError = null
+                        void handle.update()
+                      })}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      disabled={working}
+                      mix={on<HTMLButtonElement>('click', () => void restoreBackup())}
+                    >
+                      {pendingAction === 'restore-backup'
+                        ? 'Restoring…'
+                        : collections.length > 0
+                          ? 'Replace library'
+                          : 'Restore library'}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+              {backupError ? <p class="home-backup-message" role="alert">{backupError}</p> : null}
+              {backupStatus ? <p class="home-backup-message" role="status">{backupStatus}</p> : null}
+            </section>
           </main>
         </div>
       )
@@ -712,9 +917,6 @@ export const SiteBySiteApp = clientEntry(
                     >
                       Compare
                     </a>
-                    <button type="button" mix={on<HTMLButtonElement>('click', () => void exportBackup())}>
-                      Download backup
-                    </button>
                   </div>
                 </div>
                 {error ? <p class="workspace-error" role="alert">{error}</p> : null}
@@ -764,52 +966,68 @@ export const SiteBySiteApp = clientEntry(
               <>
                 <div class="workspace-heading">
                   <h1>{collection.name}</h1>
-                  <div class="workspace-controls" aria-label="Ranking actions">
+                  {collection.comparisonCount > 0 ? (
+                    <div class="workspace-controls" aria-label="Ranking actions">
+                      <a
+                        href={routes.collections.compare.href({ collectionId: collection.id })}
+                        rmx-document=""
+                      >
+                        Compare
+                      </a>
+                    </div>
+                  ) : null}
+                </div>
+                {collection.comparisonCount === 0 ? (
+                  <div class="workspace-state ranking-empty-state">
+                    <h2>No ranking yet</h2>
+                    <p>Your first choice will start turning this collection into a personal ranking.</p>
                     <a
+                      class="workspace-control"
                       href={routes.collections.compare.href({ collectionId: collection.id })}
                       rmx-document=""
                     >
-                      Compare
+                      Start comparing
                     </a>
                   </div>
-                </div>
-                <div class="table-scroll">
-                  <div class="table-inner">
-                    <table class="ranking-table">
-                      <thead>
-                        <tr>
-                          <th><span class="sr-only">Position</span><span aria-hidden="true">#</span></th>
-                          <th>Website</th>
-                          <th>Score</th>
-                          <th class="comparison-column">Comparisons</th>
-                          <th><span class="sr-only">Open</span></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {ranking.map((website, index) => (
-                          <tr class={website.status === 'unavailable' ? 'is-unavailable' : undefined}>
-                            <td class="rank-position">{index + 1}</td>
-                            <td>
-                              <div class="site-cell">
-                                <span class="site-copy">
-                                  <span class="site-title">{website.title ?? website.domain}</span>
-                                  <span class="site-domain">
-                                    {website.domain}{website.status === 'unavailable' ? ' · unavailable' : ''}
-                                  </span>
-                                </span>
-                              </div>
-                            </td>
-                            <td class="numeric-cell">{website.rating}</td>
-                            <td class="numeric-cell comparison-column">{website.comparisons}</td>
-                            <td class="open-cell">
-                              <a href={website.normalizedUrl} target="_blank" rel="noreferrer">Open</a>
-                            </td>
+                ) : (
+                  <div class="table-scroll">
+                    <div class="table-inner">
+                      <table class="ranking-table">
+                        <thead>
+                          <tr>
+                            <th><span class="sr-only">Position</span><span aria-hidden="true">#</span></th>
+                            <th>Website</th>
+                            <th>Score</th>
+                            <th class="comparison-column">Comparisons</th>
+                            <th><span class="sr-only">Open</span></th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {ranking.map((website, index) => (
+                            <tr class={website.status === 'unavailable' ? 'is-unavailable' : undefined}>
+                              <td class="rank-position">{index + 1}</td>
+                              <td>
+                                <div class="site-cell">
+                                  <span class="site-copy">
+                                    <span class="site-title">{website.title ?? website.domain}</span>
+                                    <span class="site-domain">
+                                      {website.domain}{website.status === 'unavailable' ? ' · unavailable' : ''}
+                                    </span>
+                                  </span>
+                                </div>
+                              </td>
+                              <td class="numeric-cell">{website.rating}</td>
+                              <td class="numeric-cell comparison-column">{website.comparisons}</td>
+                              <td class="open-cell">
+                                <a href={website.normalizedUrl} target="_blank" rel="noreferrer">Open</a>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
+                )}
               </>
             )}
           </main>
@@ -837,26 +1055,80 @@ export const SiteBySiteApp = clientEntry(
       if (!collection) {
         return renderComparisonState(
           <div class="workspace-state">
-            <h1>Collection not found</h1>
-            <p>It may have been created in another browser or cleared from this one.</p>
+            <h1>{error ? 'Comparison could not be opened' : 'Collection not found'}</h1>
+            {error ? (
+              <p role="alert">{error}</p>
+            ) : (
+              <p>It may have been created in another browser or cleared from this one.</p>
+            )}
             <a class="workspace-control" href={routes.home.href()} rmx-document="">
               Return home
             </a>
           </div>,
         )
       }
+      if (!comparisonViewportSupported) {
+        return renderComparisonState(
+          <div class="workspace-state comparison-width-state">
+            <h1>Comparison needs a wider window</h1>
+            <p>
+              Use a window at least 640 pixels wide to compare two websites. Your collection and
+              ranking are still available here.
+            </p>
+            {error ? <p role="alert">{error}</p> : null}
+            <div class="workspace-state-actions">
+              <a
+                class="workspace-state-link"
+                href={routes.collections.show.href({ collectionId: collection.id })}
+                rmx-document=""
+              >
+                View collection
+              </a>
+              <a
+                class="workspace-state-link"
+                href={routes.collections.ranking.href({ collectionId: collection.id })}
+                rmx-document=""
+              >
+                View ranking
+              </a>
+            </div>
+          </div>,
+          collection.id,
+        )
+      }
       if (!pair) {
         return renderComparisonState(
           <div class="workspace-state">
             <h1>Two available sites are needed</h1>
-            <p>Return to the collection to add more websites.</p>
-            <a
-              class="workspace-control"
-              href={routes.collections.show.href({ collectionId: collection.id })}
-              rmx-document=""
-            >
-              View collection
-            </a>
+            {error ? (
+              <p role="alert">{error}</p>
+            ) : (
+              <p>
+                {undoAvailable
+                  ? 'Undo the last action or return to the collection to add more websites.'
+                  : 'Return to the collection to add more websites.'}
+              </p>
+            )}
+            <div class="workspace-state-actions">
+              {undoAvailable ? (
+                <button
+                  class="workspace-control"
+                  type="button"
+                  disabled={working}
+                  aria-keyshortcuts="u"
+                  mix={on<HTMLButtonElement>('click', () => void undoLastComparisonAction())}
+                >
+                  Undo last action
+                </button>
+              ) : null}
+              <a
+                class="workspace-state-link"
+                href={routes.collections.show.href({ collectionId: collection.id })}
+                rmx-document=""
+              >
+                View collection
+              </a>
+            </div>
           </div>,
           collection.id,
         )
@@ -868,6 +1140,7 @@ export const SiteBySiteApp = clientEntry(
         <main
           class={`comparison-stage isolate${pairLoading ? ' is-loading' : ''}`}
           style={{ '--divider': `${dividerPercent}%` }}
+          tabIndex={-1}
           data-comparison
         >
           <div class={`site-layer ${sidesSwapped ? 'site-layer-right' : 'site-layer-left'}`}>
@@ -891,29 +1164,53 @@ export const SiteBySiteApp = clientEntry(
           <div class="comparison-loading">
             <span></span><p>Preparing comparison</p>
           </div>
-          <button
+          <div
             class="divider"
-            type="button"
             data-divider
-            aria-label="Drag to inspect both websites"
+            aria-hidden="true"
             mix={[
-              on<HTMLButtonElement>('pointerdown', dividerPointerDown),
-              on<HTMLButtonElement>('pointermove', dividerPointerMove),
-              on<HTMLButtonElement>('pointerup', dividerPointerUp),
-              on<HTMLButtonElement>('pointercancel', dividerPointerUp),
-              on<HTMLButtonElement>('dblclick', () => setDivider(50)),
+              on<HTMLDivElement>('pointerdown', dividerPointerDown),
+              on<HTMLDivElement>('pointermove', dividerPointerMove),
+              on<HTMLDivElement>('pointerup', dividerPointerUp),
+              on<HTMLDivElement>('pointercancel', dividerPointerUp),
+              on<HTMLDivElement>('dblclick', () => setDivider(50)),
             ]}
           >
             <span class="divider-line"></span><span class="divider-handle"></span>
-          </button>
+          </div>
+          <a
+            class="comparison-context"
+            href={routes.collections.show.href({ collectionId: collection.id })}
+            rmx-document=""
+          >
+            <span aria-hidden="true">←</span>
+            <span class="comparison-context-name">{collection.name}</span>
+            <span class="comparison-context-count">
+              {countLabel(collection.comparisonCount, 'comparison')}
+            </span>
+          </a>
           <div class="comparison-dock">
-            <p class="comparison-hint" role="status">
-              {keyboardPaused
-                ? 'Click the divider to use keys'
-                : swapAcknowledgement
-                  ? 'Sides switched'
-                  : 'Drag the divider to inspect both sites'}
-            </p>
+            <div class={`comparison-hint${error ? ' is-error' : ''}`}>
+              <p role={error ? 'alert' : 'status'}>
+                {error
+                  ? error
+                  : keyboardPaused
+                    ? 'Click the divider to use keys'
+                    : swapAcknowledgement
+                      ? 'Sides switched'
+                      : comparisonNotice ?? 'Drag the divider to inspect both sites'}
+              </p>
+              {undoAvailable ? (
+                <button
+                  type="button"
+                  disabled={working}
+                  aria-keyshortcuts="u"
+                  mix={on<HTMLButtonElement>('click', () => void undoLastComparisonAction())}
+                >
+                  Undo [u]
+                </button>
+              ) : null}
+            </div>
             <div class="comparison-choices" aria-label="Choose a website">
               <button type="button" disabled={working} aria-keyshortcuts="ArrowLeft" mix={on<HTMLButtonElement>('click', () => void submitChoice('left'))}>[←] Left</button>
               <button type="button" disabled={working} aria-keyshortcuts="s" mix={on<HTMLButtonElement>('click', swapSides)}>[s] Swap</button>
@@ -987,6 +1284,10 @@ async function requestPersistentStorage() {
 
 function messageFrom(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback
+}
+
+function countLabel(count: number, singular: string): string {
+  return `${count} ${singular}${count === 1 ? '' : 's'}`
 }
 
 function delay(milliseconds: number) {
