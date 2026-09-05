@@ -49,17 +49,17 @@ describe('saved collection navigation', () => {
 
     await page.goto('/')
     let collectionLink = page.getByRole('link', { name: 'Untitled collection' })
-    assert.equal(await collectionLink.getAttribute('rmx-document'), '')
+    assert.equal(await collectionLink.getAttribute('data-rmx-document'), '')
     await collectionLink.click()
     await page.getByRole('heading', { name: 'Untitled collection' }).waitFor()
     assert.equal(await page.locator('.app-header, .header-menu').count(), 0)
     let collectionBreadcrumb = page.getByRole('navigation', { name: 'Breadcrumb' })
     let libraryLink = collectionBreadcrumb.getByRole('link', { name: /Library/ })
     assert.equal(await libraryLink.getAttribute('href'), '/')
-    assert.equal(await libraryLink.getAttribute('rmx-document'), '')
+    assert.equal(await libraryLink.getAttribute('data-rmx-document'), '')
     let collectionRankingLink = page.getByRole('link', { name: 'Ranking' })
     assert.match(await collectionRankingLink.getAttribute('href') ?? '', /\/ranking$/)
-    assert.equal(await collectionRankingLink.getAttribute('rmx-document'), '')
+    assert.equal(await collectionRankingLink.getAttribute('data-rmx-document'), '')
     assert.equal(
       await collectionRankingLink.evaluate(
         (element) => getComputedStyle(element).backgroundColor,
@@ -126,7 +126,7 @@ describe('saved collection navigation', () => {
     )
 
     let compareLink = page.getByRole('link', { name: 'Compare' })
-    assert.equal(await compareLink.getAttribute('rmx-document'), '')
+    assert.equal(await compareLink.getAttribute('data-rmx-document'), '')
     await compareLink.click()
     await page.locator('[data-comparison]').waitFor()
     let comparisonUrl = page.url()
@@ -158,7 +158,7 @@ describe('saved collection navigation', () => {
 
     let comparisonContext = page.locator('.comparison-context')
     assert.equal(await comparisonContext.getAttribute('href'), new URL(collectionUrl).pathname)
-    assert.equal(await comparisonContext.getAttribute('rmx-document'), '')
+    assert.equal(await comparisonContext.getAttribute('data-rmx-document'), '')
     assert.match(await comparisonContext.innerText(), /Untitled collection\s+0 comparisons/)
     let comparisonStage = page.locator('[data-comparison]')
     let divider = page.locator('[data-divider]')
@@ -192,9 +192,9 @@ describe('saved collection navigation', () => {
     let emptyViewCollection = page.getByRole('link', { name: 'View collection' })
     let emptyViewRanking = page.getByRole('link', { name: 'View ranking' })
     assert.equal(await emptyViewCollection.getAttribute('href'), collectionPath)
-    assert.equal(await emptyViewCollection.getAttribute('rmx-document'), '')
+    assert.equal(await emptyViewCollection.getAttribute('data-rmx-document'), '')
     assert.equal(await emptyViewRanking.getAttribute('href'), rankingPath)
-    assert.equal(await emptyViewRanking.getAttribute('rmx-document'), '')
+    assert.equal(await emptyViewRanking.getAttribute('data-rmx-document'), '')
     let emptyStateUndo = page.getByRole('button', { name: 'Undo last action' })
     await emptyStateUndo.waitFor()
     await emptyStateUndo.click()
@@ -249,7 +249,7 @@ describe('saved collection navigation', () => {
       await page.locator('.workspace-main').evaluate((element) => element.getBoundingClientRect().width),
       296,
     )
-    assert.equal(await rankingLink.getAttribute('rmx-document'), '')
+    assert.equal(await rankingLink.getAttribute('data-rmx-document'), '')
     await rankingLink.click()
     let rankingUrl = page.url()
     await page.getByRole('heading', { name: 'Ranking', exact: true }).waitFor()
@@ -261,9 +261,9 @@ describe('saved collection navigation', () => {
       name: 'Untitled collection',
     })
     assert.equal(await rankingCollectionLink.getAttribute('href'), collectionPath)
-    assert.equal(await rankingCollectionLink.getAttribute('rmx-document'), '')
+    assert.equal(await rankingCollectionLink.getAttribute('data-rmx-document'), '')
     let firstComparisonLink = page.getByRole('link', { name: 'Start comparing' })
-    assert.equal(await firstComparisonLink.getAttribute('rmx-document'), '')
+    assert.equal(await firstComparisonLink.getAttribute('data-rmx-document'), '')
     await page.setViewportSize({ width: 640, height: 844 })
     await firstComparisonLink.click()
     await page.locator('[data-comparison]').waitFor()
@@ -328,7 +328,7 @@ describe('saved collection navigation', () => {
       assert.equal(await page.locator('.app-header, .header-menu').count(), 0)
       let returnHome = page.getByRole('link', { name: 'Return home' })
       assert.equal(await returnHome.getAttribute('href'), '/')
-      assert.equal(await returnHome.getAttribute('rmx-document'), '')
+      assert.equal(await returnHome.getAttribute('data-rmx-document'), '')
     }
   })
 

@@ -5,12 +5,12 @@ const isDevelopment = (process.env.NODE_ENV ?? 'development') === 'development'
 export const assetServer = createAssetServer({
   basePath: '/assets',
   rootDir: process.cwd(),
-  fileMap: {
-    'app/*path': 'app/*path',
-    'node_modules/*path': 'node_modules/*path',
+  mounts: {
+    app: 'app',
+    node_modules: 'node_modules',
   },
-  allow: ['app/**', 'node_modules/**'],
-  deny: ['app/**/*.server.*', 'app/actions/**', 'app/middleware/**'],
+  allowFiles: ['app/**', 'node_modules/**'],
+  denyFiles: ['app/**/*.server.*', 'app/actions/**', 'app/middleware/**'],
   sourceMaps: isDevelopment ? 'external' : undefined,
   minify: !isDevelopment,
   watch: isDevelopment,

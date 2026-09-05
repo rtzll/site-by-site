@@ -8,7 +8,7 @@ if ('navigation' in window) {
       if (exportName === SiteBySiteEntryId) return SiteBySiteApp
       throw new Error(`Unknown client entry: ${exportName}`)
     },
-    async resolveFrame(src, signal) {
+    async resolveFrame(src, { signal } = {}) {
       let response = await fetch(src, { headers: { Accept: 'text/html' }, signal })
       if (!response.ok) return `<pre>Frame error: ${response.status}</pre>`
       return response.body ?? (await response.text())

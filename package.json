@@ -21,15 +21,15 @@
   "packageManager": "pnpm@10.33.2",
   "dependencies": {
     "idb": "^8.0.3",
-    "remix": "3.0.0-beta.5"
+    "remix": "3.0.0-rc.1"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.45.1",
-    "@types/node": "^24.13.3",
+    "@cloudflare/vite-plugin": "^1.54.4",
+    "@types/node": "^26.4.1",
     "fake-indexeddb": "^6.2.5",
-    "playwright": "1.60.0",
-    "typescript": "^6.0.3",
-    "vite": "^7.3.6",
-    "wrangler": "^4.112.0"
+    "playwright": "1.63.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "wrangler": "^4.129.0"
   }
 }

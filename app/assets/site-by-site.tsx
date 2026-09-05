@@ -932,7 +932,7 @@ export const SiteBySiteApp = clientEntry(
                   {collections.map((saved) => (
                     <a
                       href={routes.collections.show.href({ collectionId: saved.id })}
-                      rmx-document=""
+                      data-rmx-document=""
                     >
                       <span>{saved.name}</span>
                       <span class="home-library-meta">
@@ -1026,7 +1026,7 @@ export const SiteBySiteApp = clientEntry(
               <>
                 <header class="workspace-page-header">
                   <nav class="workspace-context" aria-label="Breadcrumb">
-                    <a href={routes.home.href()} rmx-document="">← Library</a>
+                    <a href={routes.home.href()} data-rmx-document="">← Library</a>
                   </nav>
                   <div class="workspace-heading">
                     <h1>{collection.name}</h1>
@@ -1034,13 +1034,13 @@ export const SiteBySiteApp = clientEntry(
                       <a
                         class="workspace-control-secondary"
                         href={routes.collections.ranking.href({ collectionId: collection.id })}
-                        rmx-document=""
+                        data-rmx-document=""
                       >
                         Ranking
                       </a>
                       <a
                         href={routes.collections.compare.href({ collectionId: collection.id })}
-                        rmx-document=""
+                        data-rmx-document=""
                       >
                         Compare
                       </a>
@@ -1101,11 +1101,11 @@ export const SiteBySiteApp = clientEntry(
               <>
                 <header class="workspace-page-header">
                   <nav class="workspace-context" aria-label="Breadcrumb">
-                    <a href={routes.home.href()} rmx-document="">Library</a>
+                    <a href={routes.home.href()} data-rmx-document="">Library</a>
                     <span aria-hidden="true">/</span>
                     <a
                       href={routes.collections.show.href({ collectionId: collection.id })}
-                      rmx-document=""
+                      data-rmx-document=""
                     >
                       {collection.name}
                     </a>
@@ -1116,7 +1116,7 @@ export const SiteBySiteApp = clientEntry(
                       <div class="workspace-controls" aria-label="Ranking actions">
                         <a
                           href={routes.collections.compare.href({ collectionId: collection.id })}
-                          rmx-document=""
+                          data-rmx-document=""
                         >
                           Compare
                         </a>
@@ -1131,7 +1131,7 @@ export const SiteBySiteApp = clientEntry(
                     <a
                       class="workspace-control"
                       href={routes.collections.compare.href({ collectionId: collection.id })}
-                      rmx-document=""
+                      data-rmx-document=""
                     >
                       Start comparing
                     </a>
@@ -1207,7 +1207,7 @@ export const SiteBySiteApp = clientEntry(
             ) : (
               <p>It may have been created in another browser or cleared from this one.</p>
             )}
-            <a class="workspace-control" href={routes.home.href()} rmx-document="">
+            <a class="workspace-control" href={routes.home.href()} data-rmx-document="">
               Return home
             </a>
           </div>,
@@ -1226,14 +1226,14 @@ export const SiteBySiteApp = clientEntry(
               <a
                 class="workspace-state-link"
                 href={routes.collections.show.href({ collectionId: collection.id })}
-                rmx-document=""
+                data-rmx-document=""
               >
                 View collection
               </a>
               <a
                 class="workspace-state-link"
                 href={routes.collections.ranking.href({ collectionId: collection.id })}
-                rmx-document=""
+                data-rmx-document=""
               >
                 View ranking
               </a>
@@ -1269,14 +1269,14 @@ export const SiteBySiteApp = clientEntry(
               <a
                 class="workspace-state-link"
                 href={routes.collections.show.href({ collectionId: collection.id })}
-                rmx-document=""
+                data-rmx-document=""
               >
                 View collection
               </a>
               <a
                 class="workspace-state-link"
                 href={routes.collections.ranking.href({ collectionId: collection.id })}
-                rmx-document=""
+                data-rmx-document=""
               >
                 View ranking
               </a>
@@ -1332,7 +1332,7 @@ export const SiteBySiteApp = clientEntry(
           <a
             class="comparison-context"
             href={routes.collections.show.href({ collectionId: collection.id })}
-            rmx-document=""
+            data-rmx-document=""
           >
             <span aria-hidden="true">←</span>
             <span class="comparison-context-name">{collection.name}</span>
@@ -1431,7 +1431,7 @@ function MissingCollection() {
     <div class="workspace-state">
       <h1>Collection not found</h1>
       <p>It may have been created in another browser or cleared from this one.</p>
-      <a class="workspace-control" href={routes.home.href()} rmx-document="">Return home</a>
+      <a class="workspace-control" href={routes.home.href()} data-rmx-document="">Return home</a>
     </div>
   )
 }
