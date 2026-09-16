@@ -18,10 +18,10 @@
   "engines": {
     "node": ">=24.3.0"
   },
-  "packageManager": "pnpm@10.33.2",
+  "packageManager": "pnpm@12.4.2",
   "dependencies": {
     "idb": "^8.0.3",
-    "remix": "3.0.0-rc.1"
+    "remix": "3.0.0-rc.2"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.54.4",
