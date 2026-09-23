@@ -1,5 +1,6 @@
 import * as assert from 'remix/assert'
 import { describe, it } from 'remix/test'
+import type { ImportMapData } from 'remix/ui/server'
 
 import { createAppRouter } from '../router.ts'
 import { routes } from '../routes.ts'
@@ -7,6 +8,40 @@ import { routes } from '../routes.ts'
 const origin = 'https://site-by-site.test'
 
 describe('local-first application routes', () => {
+  it('serves the browser entry with its required module mappings', async () => {
+    let router = createAppRouter()
+    let html = await (await router.fetch(new URL('/', origin))).text()
+    let entry = html.match(/<script type="module" src="([^"]+)"/)
+    assert.ok(entry)
+    let response = await router.fetch(new URL(entry[1], origin))
+    assert.equal(response.status, 200)
+    assert.match(response.headers.get('content-type') ?? '', /javascript/)
+
+    if (process.env.NODE_ENV !== 'development') {
+      assert.equal(entry[1], '/assets/entry.js')
+      return
+    }
+
+    let importMapTag = html.match(/<script[^>]*type="importmap"[^>]*>([\s\S]*?)<\/script>/)
+    assert.ok(importMapTag, 'Development scripts need an import map before they can load')
+    assert.ok(html.indexOf(importMapTag[0]) < html.indexOf(entry[0]))
+
+    let importMap = JSON.parse(importMapTag[1]) as ImportMapData
+    let appImports = importMap.scopes?.['/assets/app/']
+    for (let specifier of ['remix/ui', 'remix/ui/jsx-runtime', 'remix/routes', 'idb']) {
+      assert.ok(appImports?.[specifier], `Missing browser mapping for ${specifier}`)
+    }
+
+    let moduleHrefs = new Set(Object.values(importMap.scopes ?? {}).flatMap(Object.values))
+    for (let href of moduleHrefs) {
+      assert.ok(href)
+      let module = await router.fetch(new URL(href, origin))
+      assert.equal(module.status, 200, `Browser dependency must be served: ${href}`)
+      assert.match(module.headers.get('content-type') ?? '', /javascript/)
+      await module.text()
+    }
+  })
+
   it('renders the browser-owned import shell', async () => {
     let response = await createAppRouter().fetch(new URL(routes.home.href(), origin))
 

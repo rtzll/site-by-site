@@ -2,12 +2,17 @@ import type { Router } from 'remix/router'
 import { renderWith } from 'remix/middleware/render'
 import { createHtmlResponse } from 'remix/response/html'
 import type { RemixNode } from 'remix/ui'
-import { renderToStream } from 'remix/ui/server'
+import { renderToStream, type RenderToStreamOptions } from 'remix/ui/server'
 
 import { SiteBySiteEntryId } from '../assets/site-by-site.tsx'
 import { clientEntryHref } from '../client-entry.ts'
 
-export function render() {
+export function render(
+  resolveClientEntry: RenderToStreamOptions['resolveClientEntry'] = (entryId) => {
+    if (entryId !== SiteBySiteEntryId) throw new Error(`Unknown client entry: ${entryId}`)
+    return { href: clientEntryHref, exportName: SiteBySiteEntryId }
+  },
+) {
   return renderWith(
     ({ request, router }) =>
       function renderNode(node: RemixNode, init?: ResponseInit) {
@@ -15,10 +20,7 @@ export function render() {
           frameSrc: request.url,
           signal: request.signal,
           resolveFrame: (src) => resolveFrame(router, request, src),
-          async resolveClientEntry(entryId) {
-            if (entryId !== SiteBySiteEntryId) throw new Error(`Unknown client entry: ${entryId}`)
-            return { href: clientEntryHref, exportName: SiteBySiteEntryId }
-          },
+          resolveClientEntry,
         })
 
         return createHtmlResponse(stream, init)

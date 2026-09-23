@@ -22,7 +22,7 @@ Run the complete verification suite with:
 pnpm run check
 ```
 
-This runs the TypeScript check, production build, and tests.
+This runs the TypeScript check, production build, and tests against both the built assets and the development asset server.
 
 ## Comparison controls
 

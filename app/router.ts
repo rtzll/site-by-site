@@ -3,6 +3,8 @@ import { staticFiles } from 'remix/middleware/static'
 
 import rootController from './actions/controller.tsx'
 import collectionsController from './actions/collections/controller.tsx'
+import { assetServer } from './assets.ts'
+import { SiteBySiteEntryId } from './assets/site-by-site.tsx'
 import { render } from './middleware/render.tsx'
 import { routes } from './routes.ts'
 
@@ -19,7 +21,13 @@ export function createAppRouter() {
     middleware: [
       staticFiles('./public', { index: false }),
       staticFiles('./dist/client', { index: false }),
-      render(),
+      render(process.env.NODE_ENV === 'development' ? async (entryId) => {
+        if (entryId !== SiteBySiteEntryId) throw new Error(`Unknown client entry: ${entryId}`)
+        return {
+          ...await assetServer.getScriptEntry('app/assets/entry.ts'),
+          exportName: SiteBySiteEntryId,
+        }
+      } : undefined),
     ],
   })
 

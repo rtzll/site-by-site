@@ -13,5 +13,6 @@ export const assetServer = createAssetServer({
   denyFiles: ['app/**/*.server.*', 'app/actions/**', 'app/middleware/**'],
   sourceMaps: isDevelopment ? 'external' : undefined,
   minify: !isDevelopment,
-  watch: isDevelopment,
+  // The dev command restarts Node when application files change.
+  watch: false,
 })
