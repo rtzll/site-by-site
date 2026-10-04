@@ -1,4 +1,4 @@
-import { run } from 'remix/ui'
+import { run } from 'remix/component'
 
 import { SiteBySiteApp, SiteBySiteEntryId } from './site-by-site.tsx'
 

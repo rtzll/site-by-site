@@ -1,6 +1,6 @@
 import * as assert from 'remix/assert'
 import { describe, it } from 'remix/test'
-import type { ImportMapData } from 'remix/ui/server'
+import type { ImportMapData } from 'remix/component/server'
 
 import { createAppRouter } from '../router.ts'
 import { routes } from '../routes.ts'
@@ -28,11 +28,19 @@ describe('local-first application routes', () => {
 
     let importMap = JSON.parse(importMapTag[1]) as ImportMapData
     let appImports = importMap.scopes?.['/assets/app/']
-    for (let specifier of ['remix/ui', 'remix/ui/jsx-runtime', 'remix/routes', 'idb']) {
-      assert.ok(appImports?.[specifier], `Missing browser mapping for ${specifier}`)
-    }
+    assert.ok(appImports?.idb, 'Missing browser mapping for idb')
 
-    let moduleHrefs = new Set(Object.values(importMap.scopes ?? {}).flatMap(Object.values))
+    // Remix optimizes named imports into direct module URLs, so dependencies
+    // must be checked through module preloads as well as import-map mappings.
+    let preloadHrefs = Array.from(
+      html.matchAll(/<link[^>]*rel="modulepreload"[^>]*href="([^"]+)"[^>]*>/g),
+      (match) => match[1],
+    )
+    assert.ok(preloadHrefs.length > 0, 'Development scripts need module preloads')
+    let moduleHrefs = new Set([
+      ...Object.values(importMap.scopes ?? {}).flatMap(Object.values),
+      ...preloadHrefs,
+    ])
     for (let href of moduleHrefs) {
       assert.ok(href)
       let module = await router.fetch(new URL(href, origin))

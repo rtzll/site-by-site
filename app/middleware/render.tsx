@@ -1,8 +1,8 @@
 import type { Router } from 'remix/router'
 import { renderWith } from 'remix/middleware/render'
 import { createHtmlResponse } from 'remix/response/html'
-import type { RemixNode } from 'remix/ui'
-import { renderToStream, type RenderToStreamOptions } from 'remix/ui/server'
+import type { RemixNode } from 'remix/component'
+import { renderToStream, type RenderToStreamOptions } from 'remix/component/server'
 
 import { SiteBySiteEntryId } from '../assets/site-by-site.tsx'
 import { clientEntryHref } from '../client-entry.ts'

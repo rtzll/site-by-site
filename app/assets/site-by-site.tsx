@@ -4,7 +4,7 @@ import {
   type Handle,
   type RemixNode,
   type SerializableProps,
-} from 'remix/ui'
+} from 'remix/component'
 
 import { demoCollectionName, demoWebsiteUrls } from '../data/demo-websites.ts'
 import {

@@ -1,4 +1,4 @@
-import type { Handle } from 'remix/ui'
+import type { Handle } from 'remix/component'
 
 import { SiteBySiteApp, type AppPageKind } from '../assets/site-by-site.tsx'
 import { Document } from '../ui/document.tsx'
