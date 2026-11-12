@@ -808,6 +808,10 @@ export const SiteBySiteApp = clientEntry(
                 Add bookmarks or paste links. Each choice builds a ranking stored only in this
                 browser.
               </p>
+              <p class="home-width-note">
+                Comparing needs a screen at least 640 pixels wide. Add sites here, then compare on
+                a tablet or computer.
+              </p>
 
               {error ? <p class="home-error" role="alert">{error}</p> : null}
 

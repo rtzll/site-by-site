@@ -329,6 +329,11 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
   }
 }
 
+.home-width-note { display: none; }
+@media (max-width: 639.98px) {
+  .home-width-note { display: block; padding: .65rem .75rem; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--well); color: var(--muted); font-size: var(--home-type); line-height: 1.5; text-wrap: pretty; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
