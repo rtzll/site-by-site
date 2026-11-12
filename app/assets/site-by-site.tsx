@@ -190,6 +190,8 @@ export const SiteBySiteApp = clientEntry(
         if (event.key === '1' || event.key === '2') setDivider(savedDividerPercent)
       }
       let onWindowBlur = () => {
+        // Touch-only devices have no shortcuts to pause, so the hint would only confuse.
+        if (!window.matchMedia('(any-pointer: fine)').matches) return
         window.setTimeout(() => {
           if (document.activeElement instanceof HTMLIFrameElement) {
             keyboardPaused = true

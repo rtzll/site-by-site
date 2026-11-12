@@ -319,6 +319,13 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
   .site-status { bottom: 6.15rem; }
 }
 
+@media (hover: none) and (pointer: coarse) {
+  .shortcut-key, .home-preview-key { display: none; }
+  @container home-preview (max-width: 22rem) {
+    .home-preview-status-action { display: none; }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
