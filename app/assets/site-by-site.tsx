@@ -588,10 +588,9 @@ export const SiteBySiteApp = clientEntry(
 
     function frameLoaded(side: 'left' | 'right') {
       loadedSides.add(side)
-      if (loadedSides.size === 2) {
-        pairLoading = false
-        void handle.update()
-      }
+      if (loadedSides.size === 2) pairLoading = false
+      // Re-render after each side so a slow side's loading indicator clears on its own.
+      void handle.update()
     }
 
     function setDivider(percent: number) {
@@ -1292,6 +1291,10 @@ export const SiteBySiteApp = clientEntry(
       }
 
       let visiblePair = orientPair(pair, sidesSwapped)
+      let visibleSideLoading = {
+        left: !pairLoading && !loadedSides.has(sidesSwapped ? 'right' : 'left'),
+        right: !pairLoading && !loadedSides.has(sidesSwapped ? 'left' : 'right'),
+      }
 
       return (
         <main
@@ -1300,7 +1303,10 @@ export const SiteBySiteApp = clientEntry(
           tabIndex={-1}
           data-comparison
         >
-          <div class={`site-layer ${sidesSwapped ? 'site-layer-right' : 'site-layer-left'}`}>
+          <div
+            class={`site-layer ${sidesSwapped ? 'site-layer-right' : 'site-layer-left'}${loadedSides.has('left') ? '' : ' is-frame-loading'}`}
+          >
+            <span class="site-layer-spinner" aria-hidden="true"></span>
             <iframe
               key={`left-${pair.id}`}
               title={`${sidesSwapped ? 'Right' : 'Left'}: ${pair.left.domain}`}
@@ -1309,7 +1315,10 @@ export const SiteBySiteApp = clientEntry(
               mix={on<HTMLIFrameElement>('load', () => frameLoaded('left'))}
             ></iframe>
           </div>
-          <div class={`site-layer ${sidesSwapped ? 'site-layer-left' : 'site-layer-right'}`}>
+          <div
+            class={`site-layer ${sidesSwapped ? 'site-layer-left' : 'site-layer-right'}${loadedSides.has('right') ? '' : ' is-frame-loading'}`}
+          >
+            <span class="site-layer-spinner" aria-hidden="true"></span>
             <iframe
               key={`right-${pair.id}`}
               title={`${sidesSwapped ? 'Left' : 'Right'}: ${pair.right.domain}`}
@@ -1385,7 +1394,12 @@ export const SiteBySiteApp = clientEntry(
             </div>
           </div>
           <div class="site-status site-status-left">
-            <a href={visiblePair.left.url} target="_blank" rel="noreferrer">{visiblePair.left.domain}</a>
+            <a href={visiblePair.left.url} target="_blank" rel="noreferrer">
+              {visibleSideLoading.left ? (
+                <span class="site-status-spinner" role="status" aria-label="Still loading"></span>
+              ) : null}
+              {visiblePair.left.domain}
+            </a>
             <button
               type="button"
               disabled={working}
@@ -1398,7 +1412,12 @@ export const SiteBySiteApp = clientEntry(
             </button>
           </div>
           <div class="site-status site-status-right">
-            <a href={visiblePair.right.url} target="_blank" rel="noreferrer">{visiblePair.right.domain}</a>
+            <a href={visiblePair.right.url} target="_blank" rel="noreferrer">
+              {visibleSideLoading.right ? (
+                <span class="site-status-spinner" role="status" aria-label="Still loading"></span>
+              ) : null}
+              {visiblePair.right.domain}
+            </a>
             <button
               type="button"
               disabled={working}
