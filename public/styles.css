@@ -317,6 +317,9 @@ h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
   .workspace-controls a, .workspace-controls button, .workspace-control, .workspace-settings summary, .compact-form input { min-height: 3rem; }
   .comparison-choices button, .site-status a, .site-status button { min-height: 3rem; }
   .site-status { bottom: 6.15rem; }
+  .comparison-context { min-height: 3rem; top: .75rem; left: .75rem; }
+  .workspace-state-link, .open-cell a { display: inline-flex; min-height: 3rem; align-items: center; }
+  .open-cell a { min-width: 3rem; justify-content: flex-end; }
 }
 
 @media (hover: none) and (pointer: coarse) {
