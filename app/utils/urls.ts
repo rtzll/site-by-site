@@ -51,7 +51,7 @@ export function extractUrls(text: string): ImportedUrl[] {
 }
 
 function trimCandidate(input: string): string {
-  let value = input.trim().replace(/^[<\[({'"]+/, '')
+  let value = input.trim().replace(/^[<[({'"]+/, '')
 
   while (/[>\])},.;!?'":]$/.test(value)) {
     let final = value.at(-1)
