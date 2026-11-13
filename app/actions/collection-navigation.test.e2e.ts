@@ -9,7 +9,7 @@ describe('saved collection navigation', () => {
     'preserves the complete local comparison flow and responsive UI contract',
     { timeout: 30_000 },
     async (t) => {
-      let server = await createTestServer(createAppRouter().fetch)
+      let server = await createAppTestServer()
       let page = await t.serve(server)
 
       await page.goto('/')
@@ -353,7 +353,7 @@ describe('saved collection navigation', () => {
     'keeps missing collection states navigable without global chrome',
     { timeout: 15_000 },
     async (t) => {
-      let server = await createTestServer(createAppRouter().fetch)
+      let server = await createAppTestServer()
       let page = await t.serve(server)
 
       for (let path of [
@@ -372,7 +372,7 @@ describe('saved collection navigation', () => {
   )
 
   it('starts and reopens the bundled demo collection', { timeout: 15_000 }, async (t) => {
-    let server = await createTestServer(createAppRouter().fetch)
+    let server = await createAppTestServer()
     let page = await t.serve(server)
 
     await page.goto('/')
@@ -616,7 +616,7 @@ describe('saved collection navigation', () => {
   })
 
   it('exports and restores the complete browser library', { timeout: 15_000 }, async (t) => {
-    let server = await createTestServer(createAppRouter().fetch)
+    let server = await createAppTestServer()
     let page = await t.serve(server)
 
     await page.goto('/')
@@ -703,3 +703,8 @@ describe('saved collection navigation', () => {
     )
   })
 })
+
+function createAppTestServer() {
+  let router = createAppRouter()
+  return createTestServer((request) => router.fetch(request))
+}
