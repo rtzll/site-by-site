@@ -31,7 +31,7 @@ function shutdown() {
   shuttingDown = true
 
   server.close(() => {
-    assetServer
+    void assetServer
       .close()
       .catch(console.error)
       .then(() => {
