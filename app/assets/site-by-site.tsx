@@ -311,7 +311,7 @@ export const SiteBySiteApp = clientEntry(
       event.preventDefault()
       if (!library || working) return
       let form = event.currentTarget as HTMLFormElement
-      let urls = extractUrls(String(new FormData(form).get('urls') ?? ''))
+      let urls = extractUrls(formText(form, 'urls'))
       if (urls.length < 2) {
         error = 'Add at least two valid website URLs.'
         await handle.update()
@@ -421,7 +421,7 @@ export const SiteBySiteApp = clientEntry(
       event.preventDefault()
       if (!library || !collection || working) return
       let form = event.currentTarget as HTMLFormElement
-      let websites = extractUrls(String(new FormData(form).get('urls') ?? ''))
+      let websites = extractUrls(formText(form, 'urls'))
       if (websites.length === 0) {
         error = 'No valid website URLs were found.'
         await handle.update()
@@ -447,7 +447,7 @@ export const SiteBySiteApp = clientEntry(
       event.preventDefault()
       if (!library || !collection || working) return
       let form = event.currentTarget as HTMLFormElement
-      let name = String(new FormData(form).get('name') ?? '')
+      let name = formText(form, 'name')
       working = true
       pendingAction = 'rename-collection'
       error = null
@@ -1624,4 +1624,9 @@ function countLabel(count: number, singular: string): string {
 
 function delay(milliseconds: number) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds))
+}
+
+function formText(form: HTMLFormElement, name: string): string {
+  let value = new FormData(form).get(name)
+  return typeof value === 'string' ? value : ''
 }
