@@ -60,10 +60,7 @@ export function parseBookmarkHtml(html: string): BookmarkFolder[] {
   }))
 }
 
-function ensureFolder(
-  folders: Map<string, { name: string; urls: Set<string> }>,
-  stack: string[],
-) {
+function ensureFolder(folders: Map<string, { name: string; urls: Set<string> }>, stack: string[]) {
   let path = stack.join(' / ')
   let folder = folders.get(path)
   if (!folder) {
@@ -74,12 +71,16 @@ function ensureFolder(
 }
 
 function readAttribute(attributes: string, name: string): string | null {
-  let match = attributes.match(new RegExp(`\\b${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i'))
+  let match = attributes.match(
+    new RegExp(`\\b${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i'),
+  )
   return match?.[1] ?? match?.[2] ?? match?.[3] ?? null
 }
 
 function cleanText(value: string): string {
-  return decodeEntities(value.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim()
+  return decodeEntities(value.replace(/<[^>]+>/g, ''))
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 function decodeEntities(value: string): string {

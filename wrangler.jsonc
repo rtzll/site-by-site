@@ -8,23 +8,23 @@
   "preview_urls": true,
   "assets": {
     "not_found_handling": "none",
-    "run_worker_first": false
+    "run_worker_first": false,
   },
   "observability": {
     "enabled": true,
-    "head_sampling_rate": 1
+    "head_sampling_rate": 1,
   },
   "routes": [
     {
       "pattern": "site-by-site.christianrotzoll.com",
-      "custom_domain": true
-    }
+      "custom_domain": true,
+    },
   ],
   "env": {
     "preview": {
       "workers_dev": true,
       "preview_urls": true,
-      "routes": []
-    }
-  }
+      "routes": [],
+    },
+  },
 }

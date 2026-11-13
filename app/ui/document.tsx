@@ -2,9 +2,8 @@ import { css, type Handle, type RemixNode } from 'remix/component'
 
 import { clientEntryHref } from '../client-entry.ts'
 
-const stylesHref = process.env.NODE_ENV === 'development'
-  ? `/styles.css?v=${Date.now()}`
-  : '/styles.css'
+const stylesHref =
+  process.env.NODE_ENV === 'development' ? `/styles.css?v=${Date.now()}` : '/styles.css'
 
 export interface DocumentProps {
   children?: RemixNode

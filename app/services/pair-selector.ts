@@ -47,9 +47,11 @@ export function selectPair(
   } else {
     selected = candidates.toSorted((left, right) => {
       let leftIncludesLeast =
-        left.first.comparisons === minimumComparisons || left.second.comparisons === minimumComparisons
+        left.first.comparisons === minimumComparisons ||
+        left.second.comparisons === minimumComparisons
       let rightIncludesLeast =
-        right.first.comparisons === minimumComparisons || right.second.comparisons === minimumComparisons
+        right.first.comparisons === minimumComparisons ||
+        right.second.comparisons === minimumComparisons
 
       if (leftIncludesLeast !== rightIncludesLeast) return leftIncludesLeast ? -1 : 1
 

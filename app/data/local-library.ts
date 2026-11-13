@@ -102,11 +102,7 @@ export interface LocalLibrary {
   listCollections(): Promise<CollectionSummary[]>
   getCollection(collectionId: string): Promise<CollectionSummary | null>
   getNextPair(collectionId: string): Promise<ComparisonPair | null>
-  recordChoice(input: {
-    collectionId: string
-    pairId: string
-    choice: VoteChoice
-  }): Promise<void>
+  recordChoice(input: { collectionId: string; pairId: string; choice: VoteChoice }): Promise<void>
   markSiteUnavailable(input: {
     collectionId: string
     pairId: string
@@ -172,9 +168,7 @@ interface LocalLibraryOptions {
 
 const defaultDatabaseName = 'site-by-site'
 
-export async function openLocalLibrary(
-  options: LocalLibraryOptions = {},
-): Promise<LocalLibrary> {
+export async function openLocalLibrary(options: LocalLibraryOptions = {}): Promise<LocalLibrary> {
   let database = await openDB<SiteBySiteDatabase>(options.databaseName ?? defaultDatabaseName, 1, {
     upgrade(db) {
       let collections = db.createObjectStore('collections', { keyPath: 'id' })
@@ -252,7 +246,8 @@ class IndexedDbLocalLibrary implements LocalLibrary {
     let urlIndex = websiteStore.index('by-collection-url')
     for (let website of uniqueByUrl(websites)) {
       let existing = await urlIndex.getKey([collectionId, website.normalizedUrl])
-      if (!existing) await websiteStore.add(newWebsite(collectionId, website, timestamp, this.createId))
+      if (!existing)
+        await websiteStore.add(newWebsite(collectionId, website, timestamp, this.createId))
     }
     collection.updatedAt = timestamp
     await transaction.objectStore('collections').put(collection)
@@ -423,10 +418,9 @@ class IndexedDbLocalLibrary implements LocalLibrary {
       throw new Error('This comparison is no longer current.')
     }
     if (
-      ![
-        collection.currentPair.leftWebsiteId,
-        collection.currentPair.rightWebsiteId,
-      ].includes(website.id)
+      ![collection.currentPair.leftWebsiteId, collection.currentPair.rightWebsiteId].includes(
+        website.id,
+      )
     ) {
       throw new Error('That website is not part of the current comparison.')
     }
@@ -500,8 +494,8 @@ class IndexedDbLocalLibrary implements LocalLibrary {
       format: 'site-by-site-library',
       version: 1,
       exportedAt: new Date(this.now()).toISOString(),
-      collections: collections.map(({ lastComparisonAction: _lastComparisonAction, ...record }) =>
-        record,
+      collections: collections.map(
+        ({ lastComparisonAction: _lastComparisonAction, ...record }) => record,
       ),
       websites,
       comparisons,
@@ -722,10 +716,7 @@ function validateBackupReferences(
   }
 
   let aggregateByWebsite = new Map(
-    websites.map((website) => [
-      website.id,
-      { comparisons: 0, wins: 0, losses: 0, skips: 0 },
-    ]),
+    websites.map((website) => [website.id, { comparisons: 0, wins: 0, losses: 0, skips: 0 }]),
   )
   for (let comparison of comparisons) {
     let left = websiteIds.get(comparison.leftWebsiteId)

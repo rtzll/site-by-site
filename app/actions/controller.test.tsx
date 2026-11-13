@@ -55,14 +55,8 @@ describe('local-first application routes', () => {
 
     assert.equal(response.status, 200)
     let html = await response.text()
-    assert.match(
-      html,
-      /Compare websites side by side\./,
-    )
-    assert.match(
-      html,
-      /Each choice builds a ranking stored only in this browser\./,
-    )
+    assert.match(html, /Compare websites side by side\./)
+    assert.match(html, /Each choice builds a ranking stored only in this browser\./)
     assert.doesNotMatch(html, /class="app-header"/)
     assert.doesNotMatch(html, /—/)
     assert.match(html, /data-home-divider/)

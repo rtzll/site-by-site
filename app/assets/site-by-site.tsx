@@ -146,7 +146,8 @@ export const SiteBySiteApp = clientEntry(
           event.altKey ||
           working ||
           event.repeat
-        ) return
+        )
+          return
         if (event.key === 'ArrowLeft') {
           event.preventDefault()
           void submitChoice('left')
@@ -224,7 +225,8 @@ export const SiteBySiteApp = clientEntry(
             event.target.closest(
               'a, button, input, select, summary, textarea, [contenteditable="true"]',
             ))
-        ) return
+        )
+          return
 
         if (event.key === 'ArrowLeft') {
           event.preventDefault()
@@ -286,9 +288,7 @@ export const SiteBySiteApp = clientEntry(
     function homeDividerPointerDown(event: Event) {
       let pointerEvent = event as PointerEvent
       let divider = event.currentTarget as HTMLDivElement
-      document
-        .querySelector<HTMLElement>('[data-home-comparison]')
-        ?.focus({ preventScroll: true })
+      document.querySelector<HTMLElement>('[data-home-comparison]')?.focus({ preventScroll: true })
       divider.setPointerCapture(pointerEvent.pointerId)
       draggingHomeDivider = true
       moveHomeDivider(pointerEvent.clientX)
@@ -730,7 +730,11 @@ export const SiteBySiteApp = clientEntry(
                   >
                     <div class="home-preview-page home-preview-page-left">
                       <p class="home-preview-site-eyebrow">Edition 04</p>
-                      <strong class="home-preview-site-title">Objects for<br />quiet rooms.</strong>
+                      <strong class="home-preview-site-title">
+                        Objects for
+                        <br />
+                        quiet rooms.
+                      </strong>
                       <div class="home-preview-object home-preview-object-left"></div>
                       <div class="home-preview-site-detail home-preview-site-detail-left">
                         <span>Oak</span>
@@ -745,7 +749,11 @@ export const SiteBySiteApp = clientEntry(
                   >
                     <div class="home-preview-page home-preview-page-right">
                       <p class="home-preview-site-eyebrow">Field note 12</p>
-                      <strong class="home-preview-site-title">Ideas for<br />loud places.</strong>
+                      <strong class="home-preview-site-title">
+                        Ideas for
+                        <br />
+                        loud places.
+                      </strong>
                       <div class="home-preview-object home-preview-object-right"></div>
                       <div class="home-preview-site-detail home-preview-site-detail-right">
                         <span>52.5200° N</span>
@@ -780,13 +788,23 @@ export const SiteBySiteApp = clientEntry(
                         : 'Drag the divider to inspect both sites'}
                     </p>
                     <div class="home-preview-actions">
-                      <span>Left <kbd class="home-preview-key">←</kbd></span>
-                      <span>Swap <kbd class="home-preview-key">S</kbd></span>
-                      <span>Skip <kbd class="home-preview-key">↓</kbd></span>
-                      <span>Right <kbd class="home-preview-key">→</kbd></span>
+                      <span>
+                        Left <kbd class="home-preview-key">←</kbd>
+                      </span>
+                      <span>
+                        Swap <kbd class="home-preview-key">S</kbd>
+                      </span>
+                      <span>
+                        Skip <kbd class="home-preview-key">↓</kbd>
+                      </span>
+                      <span>
+                        Right <kbd class="home-preview-key">→</kbd>
+                      </span>
                     </div>
                   </div>
-                  <div class={`vote-feedback${homeFeedbackChoice ? ` is-visible feedback-${homeFeedbackChoice}` : ''}`}></div>
+                  <div
+                    class={`vote-feedback${homeFeedbackChoice ? ` is-visible feedback-${homeFeedbackChoice}` : ''}`}
+                  ></div>
                 </div>
                 <div
                   class="home-preview-divider"
@@ -800,7 +818,8 @@ export const SiteBySiteApp = clientEntry(
                     on<HTMLDivElement>('dblclick', () => setHomeDivider(50)),
                   ]}
                 >
-                  <span class="divider-line"></span><span class="divider-handle"></span>
+                  <span class="divider-line"></span>
+                  <span class="divider-handle"></span>
                 </div>
               </div>
               <p class="home-summary">
@@ -808,11 +827,15 @@ export const SiteBySiteApp = clientEntry(
                 browser.
               </p>
               <p class="home-width-note">
-                Comparing needs a screen at least 640 pixels wide. Add sites here, then compare on
-                a tablet or computer.
+                Comparing needs a screen at least 640 pixels wide. Add sites here, then compare on a
+                tablet or computer.
               </p>
 
-              {error ? <p class="home-error" role="alert">{error}</p> : null}
+              {error ? (
+                <p class="home-error" role="alert">
+                  {error}
+                </p>
+              ) : null}
 
               <div class="home-import">
                 <section class="home-import-method" aria-labelledby="bookmark-heading">
@@ -868,7 +891,9 @@ export const SiteBySiteApp = clientEntry(
                             })}
                           >
                             {bookmarkFolders.map((folder) => (
-                              <option value={folder.path}>{folder.path} · {folder.urls.length}</option>
+                              <option value={folder.path}>
+                                {folder.path} · {folder.urls.length}
+                              </option>
                             ))}
                           </select>
                           <svg
@@ -894,7 +919,10 @@ export const SiteBySiteApp = clientEntry(
                   ) : null}
                 </section>
 
-                <form class="home-import-method home-links-form" mix={on<HTMLFormElement>('submit', importPastedUrls)}>
+                <form
+                  class="home-import-method home-links-form"
+                  mix={on<HTMLFormElement>('submit', importPastedUrls)}
+                >
                   <div class="home-method-heading">
                     <label for="urls">Links</label>
                     <span>Two or more</span>
@@ -906,7 +934,11 @@ export const SiteBySiteApp = clientEntry(
                     placeholder={'https://example.com\nhttps://another.example'}
                     required
                   ></textarea>
-                  <button class="home-control home-submit" type="submit" disabled={working || !library}>
+                  <button
+                    class="home-control home-submit"
+                    type="submit"
+                    disabled={working || !library}
+                  >
                     {pendingAction === 'import-links' ? 'Saving locally…' : 'Start comparing'}
                   </button>
                 </form>
@@ -983,7 +1015,8 @@ export const SiteBySiteApp = clientEntry(
               {pendingBackup ? (
                 <div class="home-backup-confirmation">
                   <p role="status">
-                    This backup contains {countLabel(pendingBackup.collections.length, 'collection')} and{' '}
+                    This backup contains{' '}
+                    {countLabel(pendingBackup.collections.length, 'collection')} and{' '}
                     {countLabel(pendingBackup.websites.length, 'website')}.{' '}
                     {collections.length > 0
                       ? `Restoring it replaces the ${countLabel(collections.length, 'collection')} currently saved in this browser.`
@@ -1015,8 +1048,16 @@ export const SiteBySiteApp = clientEntry(
                   </div>
                 </div>
               ) : null}
-              {backupError ? <p class="home-backup-message" role="alert">{backupError}</p> : null}
-              {backupStatus ? <p class="home-backup-message" role="status">{backupStatus}</p> : null}
+              {backupError ? (
+                <p class="home-backup-message" role="alert">
+                  {backupError}
+                </p>
+              ) : null}
+              {backupStatus ? (
+                <p class="home-backup-message" role="status">
+                  {backupStatus}
+                </p>
+              ) : null}
             </section>
           </main>
         </div>
@@ -1027,11 +1068,17 @@ export const SiteBySiteApp = clientEntry(
       return (
         <div class="app-shell workspace-shell">
           <main class="workspace-main isolate">
-            {loading ? <LoadingPage /> : !collection ? <MissingCollection /> : (
+            {loading ? (
+              <LoadingPage />
+            ) : !collection ? (
+              <MissingCollection />
+            ) : (
               <>
                 <header class="workspace-page-header">
                   <nav class="workspace-context" aria-label="Breadcrumb">
-                    <a href={routes.home.href()} data-rmx-document="">← Library</a>
+                    <a href={routes.home.href()} data-rmx-document="">
+                      ← Library
+                    </a>
                   </nav>
                   <div class="workspace-heading">
                     <h1>{collection.name}</h1>
@@ -1052,21 +1099,48 @@ export const SiteBySiteApp = clientEntry(
                     </div>
                   </div>
                 </header>
-                {error ? <p class="workspace-error" role="alert">{error}</p> : null}
+                {error ? (
+                  <p class="workspace-error" role="alert">
+                    {error}
+                  </p>
+                ) : null}
                 <div class="workspace-stats-container">
                   <dl class="workspace-stats">
-                    <div><dt>Websites</dt><dd>{collection.websiteCount}</dd></div>
-                    <div><dt>Available</dt><dd>{collection.availableCount}</dd></div>
-                    <div><dt>Unavailable</dt><dd>{collection.unavailableCount}</dd></div>
-                    <div><dt>Comparisons</dt><dd>{collection.comparisonCount}</dd></div>
+                    <div>
+                      <dt>Websites</dt>
+                      <dd>{collection.websiteCount}</dd>
+                    </div>
+                    <div>
+                      <dt>Available</dt>
+                      <dd>{collection.availableCount}</dd>
+                    </div>
+                    <div>
+                      <dt>Unavailable</dt>
+                      <dd>{collection.unavailableCount}</dd>
+                    </div>
+                    <div>
+                      <dt>Comparisons</dt>
+                      <dd>{collection.comparisonCount}</dd>
+                    </div>
                   </dl>
                 </div>
                 <div class="workspace-settings">
                   <details>
                     <summary>Rename collection</summary>
-                    <form class="compact-form" mix={on<HTMLFormElement>('submit', renameCollection)}>
-                      <label class="sr-only" for="collection-name">Collection name</label>
-                      <input id="collection-name" name="name" defaultValue={collection.name} maxLength={80} required />
+                    <form
+                      class="compact-form"
+                      mix={on<HTMLFormElement>('submit', renameCollection)}
+                    >
+                      <label class="sr-only" for="collection-name">
+                        Collection name
+                      </label>
+                      <input
+                        id="collection-name"
+                        name="name"
+                        defaultValue={collection.name}
+                        maxLength={80}
+                        required
+                      />
                       <button
                         class="workspace-control workspace-control-secondary"
                         type="submit"
@@ -1078,8 +1152,13 @@ export const SiteBySiteApp = clientEntry(
                   </details>
                   <details>
                     <summary>Add websites</summary>
-                    <form class="compact-form vertical-form" mix={on<HTMLFormElement>('submit', addWebsites)}>
-                      <label class="sr-only" for="additional-urls">Website links</label>
+                    <form
+                      class="compact-form vertical-form"
+                      mix={on<HTMLFormElement>('submit', addWebsites)}
+                    >
+                      <label class="sr-only" for="additional-urls">
+                        Website links
+                      </label>
                       <textarea id="additional-urls" name="urls" required></textarea>
                       <button
                         class="workspace-control workspace-control-secondary"
@@ -1102,11 +1181,17 @@ export const SiteBySiteApp = clientEntry(
       return (
         <div class="app-shell workspace-shell">
           <main class="workspace-main isolate">
-            {loading ? <LoadingPage /> : !collection ? <MissingCollection /> : (
+            {loading ? (
+              <LoadingPage />
+            ) : !collection ? (
+              <MissingCollection />
+            ) : (
               <>
                 <header class="workspace-page-header">
                   <nav class="workspace-context" aria-label="Breadcrumb">
-                    <a href={routes.home.href()} data-rmx-document="">Library</a>
+                    <a href={routes.home.href()} data-rmx-document="">
+                      Library
+                    </a>
                     <span aria-hidden="true">/</span>
                     <a
                       href={routes.collections.show.href({ collectionId: collection.id })}
@@ -1132,7 +1217,9 @@ export const SiteBySiteApp = clientEntry(
                 {collection.comparisonCount === 0 ? (
                   <div class="workspace-state ranking-empty-state">
                     <h2>No ranking yet</h2>
-                    <p>Your first choice will start turning this collection into a personal ranking.</p>
+                    <p>
+                      Your first choice will start turning this collection into a personal ranking.
+                    </p>
                     <a
                       class="workspace-control"
                       href={routes.collections.compare.href({ collectionId: collection.id })}
@@ -1147,23 +1234,35 @@ export const SiteBySiteApp = clientEntry(
                       <table class="ranking-table">
                         <thead>
                           <tr>
-                            <th class="numeric-heading"><span class="sr-only">Position</span><span aria-hidden="true">#</span></th>
+                            <th class="numeric-heading">
+                              <span class="sr-only">Position</span>
+                              <span aria-hidden="true">#</span>
+                            </th>
                             <th>Website</th>
                             <th class="numeric-heading">Score</th>
                             <th class="numeric-heading comparison-column">Comparisons</th>
-                            <th><span class="sr-only">Open</span></th>
+                            <th>
+                              <span class="sr-only">Open</span>
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           {ranking.map((website, index) => (
-                            <tr class={website.status === 'unavailable' ? 'is-unavailable' : undefined}>
+                            <tr
+                              class={
+                                website.status === 'unavailable' ? 'is-unavailable' : undefined
+                              }
+                            >
                               <td class="rank-position">{index + 1}</td>
                               <td>
                                 <div class="site-cell">
                                   <span class="site-copy">
-                                    <span class="site-title">{website.title ?? website.domain}</span>
+                                    <span class="site-title">
+                                      {website.title ?? website.domain}
+                                    </span>
                                     <span class="site-domain">
-                                      {website.domain}{website.status === 'unavailable' ? ' · unavailable' : ''}
+                                      {website.domain}
+                                      {website.status === 'unavailable' ? ' · unavailable' : ''}
                                     </span>
                                   </span>
                                 </div>
@@ -1171,7 +1270,9 @@ export const SiteBySiteApp = clientEntry(
                               <td class="numeric-cell">{website.rating}</td>
                               <td class="numeric-cell comparison-column">{website.comparisons}</td>
                               <td class="open-cell">
-                                <a href={website.normalizedUrl} target="_blank" rel="noreferrer">Open</a>
+                                <a href={website.normalizedUrl} target="_blank" rel="noreferrer">
+                                  Open
+                                </a>
                               </td>
                             </tr>
                           ))}
@@ -1328,7 +1429,8 @@ export const SiteBySiteApp = clientEntry(
             ></iframe>
           </div>
           <div class="comparison-loading">
-            <span></span><p>Preparing comparison</p>
+            <span></span>
+            <p>Preparing comparison</p>
           </div>
           <div
             class="divider"
@@ -1342,7 +1444,8 @@ export const SiteBySiteApp = clientEntry(
               on<HTMLDivElement>('dblclick', () => setDivider(50)),
             ]}
           >
-            <span class="divider-line"></span><span class="divider-handle"></span>
+            <span class="divider-line"></span>
+            <span class="divider-handle"></span>
           </div>
           <a
             class="comparison-context"
@@ -1364,7 +1467,7 @@ export const SiteBySiteApp = clientEntry(
                     ? 'Click the divider to use keys'
                     : swapAcknowledgement
                       ? 'Sides switched'
-                      : comparisonNotice ?? 'Drag the divider to inspect both sites'}
+                      : (comparisonNotice ?? 'Drag the divider to inspect both sites')}
               </p>
               {undoAvailable && comparisonNotice ? (
                 <button
@@ -1374,22 +1477,56 @@ export const SiteBySiteApp = clientEntry(
                   mix={on<HTMLButtonElement>('click', () => void undoLastComparisonAction())}
                 >
                   <span>Undo</span>
-                  <kbd class="shortcut-key" aria-hidden="true">U</kbd>
+                  <kbd class="shortcut-key" aria-hidden="true">
+                    U
+                  </kbd>
                 </button>
               ) : null}
             </div>
             <div class="comparison-choices" aria-label="Choose a website">
-              <button type="button" disabled={working} aria-keyshortcuts="ArrowLeft" mix={on<HTMLButtonElement>('click', () => void submitChoice('left'))}>
-                <span>Left</span><kbd class="shortcut-key" aria-hidden="true">←</kbd>
+              <button
+                type="button"
+                disabled={working}
+                aria-keyshortcuts="ArrowLeft"
+                mix={on<HTMLButtonElement>('click', () => void submitChoice('left'))}
+              >
+                <span>Left</span>
+                <kbd class="shortcut-key" aria-hidden="true">
+                  ←
+                </kbd>
               </button>
-              <button type="button" disabled={working} aria-keyshortcuts="s" mix={on<HTMLButtonElement>('click', swapSides)}>
-                <span>Swap</span><kbd class="shortcut-key" aria-hidden="true">S</kbd>
+              <button
+                type="button"
+                disabled={working}
+                aria-keyshortcuts="s"
+                mix={on<HTMLButtonElement>('click', swapSides)}
+              >
+                <span>Swap</span>
+                <kbd class="shortcut-key" aria-hidden="true">
+                  S
+                </kbd>
               </button>
-              <button type="button" disabled={working} aria-keyshortcuts="ArrowDown" mix={on<HTMLButtonElement>('click', () => void submitChoice('skip'))}>
-                <span>Skip</span><kbd class="shortcut-key" aria-hidden="true">↓</kbd>
+              <button
+                type="button"
+                disabled={working}
+                aria-keyshortcuts="ArrowDown"
+                mix={on<HTMLButtonElement>('click', () => void submitChoice('skip'))}
+              >
+                <span>Skip</span>
+                <kbd class="shortcut-key" aria-hidden="true">
+                  ↓
+                </kbd>
               </button>
-              <button type="button" disabled={working} aria-keyshortcuts="ArrowRight" mix={on<HTMLButtonElement>('click', () => void submitChoice('right'))}>
-                <span>Right</span><kbd class="shortcut-key" aria-hidden="true">→</kbd>
+              <button
+                type="button"
+                disabled={working}
+                aria-keyshortcuts="ArrowRight"
+                mix={on<HTMLButtonElement>('click', () => void submitChoice('right'))}
+              >
+                <span>Right</span>
+                <kbd class="shortcut-key" aria-hidden="true">
+                  →
+                </kbd>
               </button>
             </div>
           </div>
@@ -1408,7 +1545,9 @@ export const SiteBySiteApp = clientEntry(
               mix={on<HTMLButtonElement>('click', () => markVisibleSideUnavailable('left'))}
             >
               <span>Didn’t load?</span>
-              <kbd class="shortcut-key" aria-hidden="true">Z</kbd>
+              <kbd class="shortcut-key" aria-hidden="true">
+                Z
+              </kbd>
             </button>
           </div>
           <div class="site-status site-status-right">
@@ -1426,10 +1565,14 @@ export const SiteBySiteApp = clientEntry(
               mix={on<HTMLButtonElement>('click', () => markVisibleSideUnavailable('right'))}
             >
               <span>Didn’t load?</span>
-              <kbd class="shortcut-key" aria-hidden="true">X</kbd>
+              <kbd class="shortcut-key" aria-hidden="true">
+                X
+              </kbd>
             </button>
           </div>
-          <div class={`vote-feedback${feedbackChoice ? ` is-visible feedback-${feedbackChoice}` : ''}`}></div>
+          <div
+            class={`vote-feedback${feedbackChoice ? ` is-visible feedback-${feedbackChoice}` : ''}`}
+          ></div>
         </main>
       )
     }
@@ -1456,7 +1599,9 @@ function MissingCollection() {
     <div class="workspace-state">
       <h1>Collection not found</h1>
       <p>It may have been created in another browser or cleared from this one.</p>
-      <a class="workspace-control" href={routes.home.href()} data-rmx-document="">Return home</a>
+      <a class="workspace-control" href={routes.home.href()} data-rmx-document="">
+        Return home
+      </a>
     </div>
   )
 }

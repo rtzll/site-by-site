@@ -14,7 +14,11 @@ describe('LocalLibrary', () => {
       sourceType: 'paste',
       websites: [
         { inputUrl: 'example.com', normalizedUrl: 'https://example.com/', domain: 'example.com' },
-        { inputUrl: 'https://example.com', normalizedUrl: 'https://example.com/', domain: 'example.com' },
+        {
+          inputUrl: 'https://example.com',
+          normalizedUrl: 'https://example.com/',
+          domain: 'example.com',
+        },
         { inputUrl: 'https://remix.run', normalizedUrl: 'https://remix.run/', domain: 'remix.run' },
       ],
     })
@@ -48,14 +52,20 @@ describe('LocalLibrary', () => {
     await library.recordChoice({ collectionId: collection.id, pairId: pair!.id, choice: 'left' })
 
     let ranking = await library.getRanking(collection.id)
-    assert.deepEqual(
-      pickRankingFields(ranking[0]!),
-      { id: pair.left.id, rating: 1020, wins: 1, losses: 0, comparisons: 1 },
-    )
-    assert.deepEqual(
-      pickRankingFields(ranking.find((site) => site.id === pair.right.id)!),
-      { id: pair.right.id, rating: 980, wins: 0, losses: 1, comparisons: 1 },
-    )
+    assert.deepEqual(pickRankingFields(ranking[0]!), {
+      id: pair.left.id,
+      rating: 1020,
+      wins: 1,
+      losses: 0,
+      comparisons: 1,
+    })
+    assert.deepEqual(pickRankingFields(ranking.find((site) => site.id === pair.right.id)!), {
+      id: pair.right.id,
+      rating: 980,
+      wins: 0,
+      losses: 1,
+      comparisons: 1,
+    })
     assert.equal((await library.getCollection(collection.id))?.comparisonCount, 1)
     assert.notEqual((await library.getNextPair(collection.id))?.id, pair.id)
   })
@@ -183,8 +193,14 @@ describe('LocalLibrary', () => {
     assert.deepEqual(await library.undoLastAction(collection.id), pair)
 
     let restoredSites = await library.getRanking(collection.id)
-    assert.equal(restoredSites.every((website) => website.comparisons === 0), true)
-    assert.equal(restoredSites.every((website) => website.skips === 0), true)
+    assert.equal(
+      restoredSites.every((website) => website.comparisons === 0),
+      true,
+    )
+    assert.equal(
+      restoredSites.every((website) => website.skips === 0),
+      true,
+    )
     assert.equal((await library.getCollection(collection.id))?.comparisonCount, 0)
   })
 
@@ -282,7 +298,10 @@ describe('LocalLibrary', () => {
       comparisonCount: 1,
     })
     assert.equal(await target.getCollection(staleCollection.id), null)
-    assert.deepEqual(await target.getRanking(sourceCollection.id), await source.getRanking(sourceCollection.id))
+    assert.deepEqual(
+      await target.getRanking(sourceCollection.id),
+      await source.getRanking(sourceCollection.id),
+    )
     assert.deepEqual(await target.getNextPair(sourceCollection.id), currentPair)
     let restoredCollection = await target.getCollection(sourceCollection.id)
     assert.equal(restoredCollection?.name, 'Reference sites')
@@ -308,10 +327,7 @@ describe('LocalLibrary', () => {
     })
     let before = await library.exportData()
 
-    await assert.rejects(
-      library.restoreData({ ...before, version: 2 }),
-      /version is not supported/,
-    )
+    await assert.rejects(library.restoreData({ ...before, version: 2 }), /version is not supported/)
     assert.deepEqual(await library.exportData(), before)
 
     let damaged = structuredClone(before)

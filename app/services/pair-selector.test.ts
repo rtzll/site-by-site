@@ -23,6 +23,9 @@ describe('pair selection', () => {
   })
 
   it('returns null with fewer than two sites', () => {
-    assert.equal(selectPair(sites.slice(0, 1), new Set(), () => 0.5), null)
+    assert.equal(
+      selectPair(sites.slice(0, 1), new Set(), () => 0.5),
+      null,
+    )
   })
 })

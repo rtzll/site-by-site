@@ -21,13 +21,17 @@ export function createAppRouter() {
     middleware: [
       staticFiles('./public', { index: false }),
       staticFiles('./dist/client', { index: false }),
-      render(process.env.NODE_ENV === 'development' ? async (entryId) => {
-        if (entryId !== SiteBySiteEntryId) throw new Error(`Unknown client entry: ${entryId}`)
-        return {
-          ...await assetServer.getScriptEntry('app/assets/entry.ts'),
-          exportName: SiteBySiteEntryId,
-        }
-      } : undefined),
+      render(
+        process.env.NODE_ENV === 'development'
+          ? async (entryId) => {
+              if (entryId !== SiteBySiteEntryId) throw new Error(`Unknown client entry: ${entryId}`)
+              return {
+                ...(await assetServer.getScriptEntry('app/assets/entry.ts')),
+                exportName: SiteBySiteEntryId,
+              }
+            }
+          : undefined,
+      ),
     ],
   })
 

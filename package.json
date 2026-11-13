@@ -5,7 +5,7 @@
   "scripts": {
     "build": "vite build",
     "build:preview": "CLOUDFLARE_ENV=preview vite build",
-    "check": "tsc --noEmit && vite build && NODE_ENV=test remix test && NODE_ENV=development remix test",
+    "check": "pnpm run fmt:check && tsc --noEmit && vite build && NODE_ENV=test remix test && NODE_ENV=development remix test",
     "deploy": "pnpm run build && wrangler deploy",
     "deploy:preview": "pnpm run build:preview && wrangler deploy",
     "dev": "NODE_ENV=development node --watch-path=app --watch-path=public --watch-path=server.ts --watch-path=vite.config.ts --import remix/node-tsx server.ts",
@@ -17,10 +17,6 @@
     "typecheck": "tsc --noEmit",
     "types": "wrangler types --include-runtime=false"
   },
-  "engines": {
-    "node": ">=24.3.0"
-  },
-  "packageManager": "pnpm@12.9.1",
   "dependencies": {
     "idb": "^8.0.4",
     "remix": "3.2.0"
@@ -34,5 +30,9 @@
     "typescript": "^7.0.2",
     "vite": "^8.3.7",
     "wrangler": "^4.159.0"
-  }
+  },
+  "engines": {
+    "node": ">=24.3.0"
+  },
+  "packageManager": "pnpm@12.9.1"
 }

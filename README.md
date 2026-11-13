@@ -26,15 +26,15 @@ This runs the TypeScript check, production build, and tests against both the bui
 
 ## Comparison controls
 
-| Action | Control |
-| --- | --- |
-| Choose the left or right site | `←` / `→` |
-| Skip the pair | `↓` |
-| Swap sides | `S` |
-| Mark the left or right site unavailable | `Z` / `X` |
-| Undo the last action | `U` |
-| Reveal one site | Hold `1` / `2` |
-| Inspect or reset the split | Drag or double-click the divider |
+| Action                                  | Control                          |
+| --------------------------------------- | -------------------------------- |
+| Choose the left or right site           | `←` / `→`                        |
+| Skip the pair                           | `↓`                              |
+| Swap sides                              | `S`                              |
+| Mark the left or right site unavailable | `Z` / `X`                        |
+| Undo the last action                    | `U`                              |
+| Reveal one site                         | Hold `1` / `2`                   |
+| Inspect or reset the split              | Drag or double-click the divider |
 
 If an embedded website takes keyboard focus, click the divider to resume using shortcuts. Comparisons require a window at least 640 pixels wide.
 
@@ -54,12 +54,12 @@ pnpm run deploy
 
 Cloudflare GitHub integration settings:
 
-| Setting | Value |
-| --- | --- |
-| Production branch | `main` |
-| Build command | `pnpm run build` |
-| Deploy command | `pnpm exec wrangler deploy` |
+| Setting                       | Value                                |
+| ----------------------------- | ------------------------------------ |
+| Production branch             | `main`                               |
+| Build command                 | `pnpm run build`                     |
+| Deploy command                | `pnpm exec wrangler deploy`          |
 | Non-production deploy command | `pnpm exec wrangler versions upload` |
-| Root directory | `.` |
+| Root directory                | `.`                                  |
 
 The Cloudflare Worker name must match `site-by-site-christianrotzoll-com` in `wrangler.jsonc`.
