@@ -6,7 +6,7 @@ Import a browser bookmarks file, paste a list of URLs, or start with the bundled
 
 ## Development
 
-Requires Node.js 24.3 or newer and the [global Vite+ CLI](https://viteplus.dev/guide/global-cli). Vite+ uses the project's pinned pnpm version.
+Requires Node.js 24.3 or newer and the [global Vite+ 1.7.0 CLI](https://viteplus.dev/guide/global-cli). Vite+ uses the project's pinned pnpm version.
 
 ```sh
 vp install --frozen-lockfile
