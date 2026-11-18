@@ -6,12 +6,11 @@ Import a browser bookmarks file, paste a list of URLs, or start with the bundled
 
 ## Development
 
-Requires Node.js 24.3 or newer.
+Requires Node.js 24.3 or newer and the [global Vite+ CLI](https://viteplus.dev/guide/global-cli). Vite+ uses the project's pinned pnpm version.
 
 ```sh
-corepack enable
-pnpm install
-pnpm run dev
+vp install --frozen-lockfile
+vp run dev
 ```
 
 Open [http://localhost:44200](http://localhost:44200).
@@ -19,7 +18,7 @@ Open [http://localhost:44200](http://localhost:44200).
 Run the complete verification suite with:
 
 ```sh
-pnpm run check
+vp run check
 ```
 
 This runs the TypeScript check, production build, and tests against both the built assets and the development asset server.
@@ -49,7 +48,7 @@ Websites are loaded directly in no-referrer iframes. Some sites block embedding 
 For a manual production deployment:
 
 ```sh
-pnpm run deploy
+vp run deploy
 ```
 
 Cloudflare GitHub integration settings:
